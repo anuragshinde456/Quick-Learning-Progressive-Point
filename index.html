@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Progressive Carrier Point - Premier Home Tutoring Across Odisha</title>
+  <meta name="description" content="Quick Progressive Carrier Point connects verified expert home tutors across Odisha (Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur) with students for 1-on-1 personalized learning.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo" onclick="app.showHome()">
+        <img src="assets/logo.png" alt="Quick Progressive Carrier Point Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Carrier Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="#" class="nav-link" onclick="app.navigateTo('home')">Home</a></li>
+        <li><a href="#" class="nav-link" onclick="app.navigateTo('about')">About Us</a></li>
+        <li><a href="#" class="nav-link" onclick="app.navigateTo('gallery')">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container">
+        <!-- Dynamic Header Actions filled by app.js -->
+      </div>
+
+      <button class="mobile-menu-btn" onclick="app.toggleMobileMenu()" aria-label="Toggle Navigation">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="#" class="mobile-nav-link" onclick="app.navigateTo('home'); app.toggleMobileMenu();"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="#" class="mobile-nav-link" onclick="app.navigateTo('about'); app.toggleMobileMenu();"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="#" class="mobile-nav-link" onclick="app.navigateTo('gallery'); app.toggleMobileMenu();"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container">
+        <!-- Filled dynamically by app.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Dynamic Page Content Root -->
+  <main id="app-root">
+    
+    <!-- Hero Section (Default View) -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="hero-tag">
+            <i class="fa-solid fa-user-check"></i> #1 Home Tutoring Network Across Odisha
+          </div>
+          <h1 class="hero-title">
+            Find Premier <span class="gradient-text">Home Tutors in Odisha</span>
+          </h1>
+          <p class="hero-desc">
+            Quick Progressive Carrier Point connects students across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur & all over Odisha with top 1-on-1 home tutors. Watch 30s to 5-min recorded intro videos and apply instantly via WhatsApp.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="app.openStudentAuth('signup')">
+              <i class="fa-solid fa-user-plus"></i> Join as Student
+            </button>
+            <button class="btn btn-teacher-portal" onclick="app.openTeacherAuth('signup')">
+              <i class="fa-solid fa-chalkboard-user"></i> Become a Teacher
+            </button>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-item">
+              <h3>500+</h3>
+              <p>Verified Tutors</p>
+            </div>
+            <div class="stat-item">
+              <h3>30 Districts</h3>
+              <p>Odisha Coverage</p>
+            </div>
+            <div class="stat-item">
+              <h3>1-on-1</h3>
+              <p>Personalized Focus</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-image-wrapper">
+          <img src="assets/hero_education.jpg" alt="Quick Progressive Carrier Point Odisha" class="hero-img">
+          <div class="floating-badge">
+            <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald); font-size: 1.8rem;"></i>
+            <div>
+              <strong style="color: var(--text-main); font-size: 0.95rem;">100% Admin Verified</strong>
+              <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Every teacher is interviewed</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Teachers Showcase Section -->
+    <section class="section" id="tutors-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">Top Odisha Faculty</span>
+          <h2 class="section-title">Browse Expert Home Tutors</h2>
+          <p class="section-desc">Explore teacher qualifications, experience, hourly rates across Odisha, and watch their 30-sec to 5-min intro demo videos.</p>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="teacher-search-input" placeholder="Search by tutor name, subject, or city/locality in Odisha..." onkeyup="app.filterTeachers()">
+          </div>
+
+          <div class="filter-chips" id="subject-filter-chips">
+            <button class="chip active" onclick="app.filterBySubject('all', this)">All Subjects</button>
+            <button class="chip" onclick="app.filterBySubject('Physics', this)">Physics</button>
+            <button class="chip" onclick="app.filterBySubject('Mathematics', this)">Mathematics</button>
+            <button class="chip" onclick="app.filterBySubject('Chemistry', this)">Chemistry</button>
+            <button class="chip" onclick="app.filterBySubject('Biology', this)">Biology</button>
+          </div>
+        </div>
+
+        <!-- Teachers Grid -->
+        <div class="teachers-grid" id="teachers-grid">
+          <!-- Filled dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us / Features -->
+    <section class="section" id="features-section" style="background: #ffffff; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">Excellence Guaranteed</span>
+          <h2 class="section-title">Why Quick Progressive Carrier Point?</h2>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 2rem; border-radius: var(--radius-lg);">
+            <div style="width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(37, 99, 235, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-circle-play"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;">Interactive Demo Videos</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Watch 30s to 5-min demo lectures before choosing your teacher. Know their teaching style beforehand.</p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 2rem; border-radius: var(--radius-lg);">
+            <div style="width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(37, 211, 102, 0.2); color: #25D366; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
+              <i class="fa-brands fa-whatsapp"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;">Instant WhatsApp Application</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Apply for your chosen teacher with one click. Pre-filled WhatsApp message directs your inquiry straight to admin & faculty.</p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 2rem; border-radius: var(--radius-lg);">
+            <div style="width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(225, 29, 72, 0.15); color: var(--accent-rose); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;">Strict Contact Privacy</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Teachers only see student name & grade. Phone numbers and emails remain 100% confidential with Admin.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="brand-logo">
+          <img src="assets/logo.png" alt="Quick Progressive Carrier Point Logo" class="brand-logo-img">
+          <div class="brand-title">Quick Progressive <span>Carrier Point</span></div>
+        </a>
+        <p>Odisha's premier 1-on-1 home tutoring network connecting students with admin-verified expert tutors across all 30 districts including Bhubaneswar, Cuttack, Rourkela, Sambalpur & Berhampur.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="#" onclick="app.navigateTo('home')">Home</a></li>
+          <li><a href="#" onclick="app.navigateTo('about')">About Us</a></li>
+          <li><a href="#" onclick="app.navigateTo('gallery')">Gallery</a></li>
+          <li><a href="#" onclick="app.openStudentAuth('login')">Student Login</a></li>
+          <li><a href="#" onclick="app.openTeacherAuth('login')">Teacher Portal</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Authorities</h4>
+        <ul class="footer-links">
+          <li><a href="#" onclick="app.switchDemoRole('student')">Student Portal</a></li>
+          <li><a href="#" onclick="app.switchDemoRole('applicant')">Teacher Onboarding</a></li>
+          <li><a href="#" onclick="app.switchDemoRole('teacher')">Verified Faculty</a></li>
+          <li><a href="#" onclick="app.switchDemoRole('admin')">Admin Command Center</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Support & WhatsApp</h4>
+        <ul class="footer-links">
+          <li><a href="https://wa.me/917008221300" target="_blank"><i class="fa-brands fa-whatsapp"></i> +91 70082 21300</a></li>
+          <li><a href="mailto:support@quickprogressive.edu.in"><i class="fa-solid fa-envelope"></i> support@quickprogressive.edu.in</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">
+        &copy; 2026 Quick Progressive Carrier Point (Odisha). All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODALS -->
+
+  <!-- 1. Student Auth Modal (Login / Signup) -->
+  <div class="modal-overlay" id="student-auth-modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="app.closeModal('student-auth-modal')"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="tab-switcher">
+        <button class="tab-btn active" id="student-tab-login" onclick="app.switchAuthTab('student', 'login')">Student Login</button>
+        <button class="tab-btn" id="student-tab-signup" onclick="app.switchAuthTab('student', 'signup')">Student Register</button>
+      </div>
+
+      <!-- Student Login Form -->
+      <form id="student-login-form" onsubmit="app.handleStudentLogin(event)">
+        <h2 class="modal-title">Welcome Back, Student!</h2>
+        <p class="modal-subtitle">Log in to view teachers and manage your learning applications.</p>
+
+        <div class="form-group">
+          <label class="form-label">Username or Email</label>
+          <input type="text" class="form-control" id="std-login-user" required placeholder="e.g. rohan_s10 or rohan@example.com" value="rohan_s10">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="std-login-pass" required placeholder="••••••••" value="123">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-right-to-bracket"></i> Login as Student
+        </button>
+
+        <p class="form-hint" style="text-align: center; margin-top: 1rem;">Demo credentials pre-filled (`123`)</p>
+      </form>
+
+      <!-- Student Signup Form -->
+      <form id="student-signup-form" style="display: none;" onsubmit="app.handleStudentSignup(event)">
+        <h2 class="modal-title">Student Registration</h2>
+        <p class="modal-subtitle">Create your student account to apply for expert home tutors in Odisha.</p>
+
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" class="form-control" id="std-reg-name" required placeholder="e.g. Rohan Sharma">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Unique Username *</label>
+            <input type="text" class="form-control" id="std-reg-username" required placeholder="e.g. rohan_2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" class="form-control" id="std-reg-phone" required placeholder="+91 9876543210">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" id="std-reg-email" required placeholder="student@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" class="form-control" id="std-reg-pass" required placeholder="••••••••">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">What are you studying / Grade *</label>
+          <input type="text" class="form-control" id="std-reg-grade" required placeholder="e.g. Class 12 CHSE/CBSE, JEE Prep, NEET Prep">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">City / Locality in Odisha *</label>
+          <input type="text" class="form-control" id="std-reg-location" required placeholder="e.g. Patia (Bhubaneswar), CDA Sector (Cuttack), Rourkela, Odisha">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Profile Picture URL (Optional)</label>
+          <input type="url" class="form-control" id="std-reg-avatar" placeholder="https://...">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-user-plus"></i> Complete Registration
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- 2. Teacher Auth Modal (Login / Signup) -->
+  <div class="modal-overlay" id="teacher-auth-modal">
+    <div class="modal-card lg">
+      <button class="modal-close" onclick="app.closeModal('teacher-auth-modal')"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="tab-switcher">
+        <button class="tab-btn active" id="teacher-tab-login" onclick="app.switchAuthTab('teacher', 'login')">Teacher Login</button>
+        <button class="tab-btn" id="teacher-tab-signup" onclick="app.switchAuthTab('teacher', 'signup')">Apply as Faculty</button>
+      </div>
+
+      <!-- Teacher Login Form -->
+      <form id="teacher-login-form" onsubmit="app.handleTeacherLogin(event)">
+        <h2 class="modal-title">Faculty Portal Login</h2>
+        <p class="modal-subtitle">Log in to view student inquiries and manage assigned teaching slots.</p>
+
+        <div class="form-group">
+          <label class="form-label">Username or Email</label>
+          <input type="text" class="form-control" id="tch-login-user" required placeholder="e.g. dr_rajesh or rajesh@qpcp.edu" value="dr_rajesh">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="tch-login-pass" required placeholder="••••••••" value="123">
+        </div>
+
+        <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-chalkboard-user"></i> Login to Faculty Portal
+        </button>
+
+        <p class="form-hint" style="text-align: center; margin-top: 1rem;">Verified Demo Faculty: `dr_rajesh` / `123` | Applicant Demo: `suresh_bio` / `123`</p>
+      </form>
+
+      <!-- Teacher Application Form -->
+      <form id="teacher-signup-form" style="display: none;" onsubmit="app.handleTeacherSignup(event)">
+        <h2 class="modal-title">Faculty Application Form</h2>
+        <p class="modal-subtitle">Apply to join Quick Progressive Carrier Point across Odisha. Admin will review your details & interview you before approving.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" id="tch-reg-name" required placeholder="e.g. Dr. Rajesh Verma">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unique Username *</label>
+            <input type="text" class="form-control" id="tch-reg-username" required placeholder="e.g. rajesh_physics">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" class="form-control" id="tch-reg-phone" required placeholder="+91 9988776655">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" id="tch-reg-email" required placeholder="teacher@example.com">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subjects You Can Teach (Comma Separated) *</label>
+            <input type="text" class="form-control" id="tch-reg-subjects" required placeholder="Physics, Mathematics, JEE Prep">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Per Hour Charges (₹) *</label>
+            <input type="number" class="form-control" id="tch-reg-rate" required placeholder="e.g. 500">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Teaching Experience *</label>
+            <input type="text" class="form-control" id="tch-reg-experience" required placeholder="e.g. 5 Years">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teaching City / Locality in Odisha *</label>
+            <input type="text" class="form-control" id="tch-reg-location" required placeholder="e.g. Bhubaneswar, Cuttack, Rourkela, Odisha">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Demo Video Link (YouTube embed link or direct video URL 30s-5min) *</label>
+          <input type="url" class="form-control" id="tch-reg-video" required placeholder="https://www.youtube.com/embed/..." value="https://www.youtube.com/embed/dQw4w9WgXcQ">
+          <span class="form-hint">Students will watch this 30s-5min demo video to introduce yourself!</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bio & Qualifications *</label>
+          <textarea class="form-control" id="tch-reg-bio" required placeholder="Describe your teaching methodology, degrees, and past results..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" class="form-control" id="tch-reg-pass" required placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profile Picture URL (Optional)</label>
+            <input type="url" class="form-control" id="tch-reg-avatar" placeholder="https://...">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-paper-plane"></i> Submit Teacher Application
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- 3. Teacher Video Intro Modal -->
+  <div class="modal-overlay" id="video-demo-modal">
+    <div class="modal-card lg">
+      <button class="modal-close" onclick="app.closeModal('video-demo-modal')"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div id="video-modal-content">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Student Edit Profile Modal -->
+  <div class="modal-overlay" id="student-edit-modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="app.closeModal('student-edit-modal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 class="modal-title">Edit Profile Details</h2>
+      <p class="modal-subtitle">You can update your name, phone number, and profile picture. Username remains fixed.</p>
+
+      <form id="student-edit-form" onsubmit="app.handleUpdateStudentProfile(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="edit-std-name" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" class="form-control" id="edit-std-phone" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Profile Picture URL</label>
+          <input type="url" class="form-control" id="edit-std-avatar">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username (Read-only)</label>
+          <input type="text" class="form-control" id="edit-std-username" disabled style="opacity: 0.6;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Supabase Config Modal (Admin Tool) -->
+  <div class="modal-overlay" id="supabase-config-modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="app.closeModal('supabase-config-modal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 class="modal-title"><i class="fa-solid fa-database" style="color: var(--primary);"></i> Supabase Live Sync</h2>
+      <p class="modal-subtitle">Enter your Supabase project credentials to enable live database synchronization.</p>
+
+      <form onsubmit="app.handleSaveSupabaseConfig(event)">
+        <div class="form-group">
+          <label class="form-label">Supabase URL</label>
+          <input type="url" class="form-control" id="sup-url-input" placeholder="https://xyzcompany.supabase.co">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Supabase Anon Key</label>
+          <input type="password" class="form-control" id="sup-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-bolt"></i> Connect Supabase Database
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. Gallery Lightbox Modal -->
+  <div class="modal-overlay" id="image-lightbox-modal">
+    <div class="modal-card lg" style="padding: 1rem; text-align: center; background: #000; border-color: #334155;">
+      <button class="modal-close" onclick="app.closeModal('image-lightbox-modal')" style="background: rgba(255,255,255,0.2); color: #fff;"><i class="fa-solid fa-xmark"></i></button>
+      <img id="lightbox-img" src="" alt="Gallery Preview" style="max-height: 80vh; border-radius: var(--radius-md); object-fit: contain;">
+      <p id="lightbox-caption" style="color: #cbd5e1; font-weight: 600; margin-top: 1rem;"></p>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript Scripts -->
+  <script type="module" src="store.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
