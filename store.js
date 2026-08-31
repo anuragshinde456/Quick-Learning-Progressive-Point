@@ -5,7 +5,7 @@
  * Premier 1-on-1 Home Tutoring Network across all of Odisha.
  */
 
-const STORAGE_KEY = 'QPCP_APP_DATA_V6';
+const STORAGE_KEY = 'QPCP_APP_DATA_V7';
 const SUPABASE_CONFIG_KEY = 'QPCP_SUPABASE_CONFIG';
 
 const DEFAULT_SUPABASE_URL = 'https://sgnwwmoehuwhzhdxmwbg.supabase.co';
@@ -25,7 +25,7 @@ const initialDemoData = {
       grade: 'Class 12 CHSE/CBSE (Physics & Math)',
       location: 'Patia, Bhubaneswar, Odisha',
       avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-      password: '123'
+      password: 'Rohan@QPCP2026!'
     },
     {
       id: 'std_2',
@@ -37,7 +37,7 @@ const initialDemoData = {
       grade: 'JEE Mains & Advanced Prep',
       location: 'CDA Sector 9, Cuttack, Odisha',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      password: '123'
+      password: 'Ananya@QPCP2026!'
     },
     {
       id: 'std_3',
@@ -49,7 +49,7 @@ const initialDemoData = {
       grade: 'Class 10 ICSE (Science Stream)',
       location: 'Civil Township, Rourkela, Odisha',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      password: '123'
+      password: 'Vikram@QPCP2026!'
     },
 
     // Verified Home Tutors (Across Odisha)
@@ -70,7 +70,7 @@ const initialDemoData = {
       rating: 4.9,
       totalStudents: 140,
       status: 'approved',
-      password: '123'
+      password: 'Rajesh@Faculty2026!'
     },
     {
       id: 'tch_2',
@@ -89,7 +89,7 @@ const initialDemoData = {
       rating: 4.8,
       totalStudents: 98,
       status: 'approved',
-      password: '123'
+      password: 'Priya@Faculty2026!'
     },
     {
       id: 'tch_3',
@@ -108,7 +108,7 @@ const initialDemoData = {
       rating: 4.7,
       totalStudents: 75,
       status: 'approved',
-      password: '123'
+      password: 'Amitab@Faculty2026!'
     },
 
     // Pending Teacher Applicant (Odisha)
@@ -128,7 +128,7 @@ const initialDemoData = {
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=250&auto=format&fit=crop&q=80',
       status: 'pending',
       appliedAt: '2026-08-05T14:30:00Z',
-      password: '123'
+      password: 'Suresh@Applicant2026!'
     },
 
     // Admin
@@ -140,7 +140,7 @@ const initialDemoData = {
       phone: '+91 70082 21300',
       email: 'admin@quickprogressive.edu.in',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-      password: 'admin'
+      password: 'Admin@QPCP2026!'
     }
   ],
 
@@ -208,6 +208,7 @@ class DataStore {
       localStorage.removeItem('QLPP_APP_DATA_V3');
       localStorage.removeItem('QPCP_APP_DATA_V4');
       localStorage.removeItem('QPCP_APP_DATA_V5');
+      localStorage.removeItem('QPCP_APP_DATA_V6');
       localStorage.removeItem(SUPABASE_CONFIG_KEY);
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -482,6 +483,25 @@ class DataStore {
 
     this.saveData();
     return this.data.users[userIndex];
+  }
+
+  removeUser(userId) {
+    const idx = this.data.users.findIndex(u => u.id === userId);
+    if (idx === -1) throw new Error('User not found');
+
+    const removedUser = this.data.users.splice(idx, 1)[0];
+
+    // Clean up related inquiries, assignments, and requests
+    this.data.inquiries = (this.data.inquiries || []).filter(i => i.studentId !== userId && i.teacherId !== userId);
+    this.data.assignments = (this.data.assignments || []).filter(a => a.studentId !== userId && a.teacherId !== userId);
+    this.data.teacherRequests = (this.data.teacherRequests || []).filter(tr => tr.studentId !== userId && tr.teacherId !== userId);
+
+    if (this.data.currentUser && this.data.currentUser.id === userId) {
+      this.data.currentUser = null;
+    }
+
+    this.saveData();
+    return removedUser;
   }
 
   rejectTeacherApplicant(applicantId) {

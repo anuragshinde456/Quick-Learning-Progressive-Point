@@ -249,19 +249,17 @@
 
         <div class="form-group">
           <label class="form-label">Username or Email</label>
-          <input type="text" class="form-control" id="std-login-user" required placeholder="e.g. rohan_s10 or rohan@example.com" value="rohan_s10">
+          <input type="text" class="form-control" id="std-login-user" required placeholder="e.g. rohan_s10 or rohan@example.com" maxlength="80">
         </div>
 
         <div class="form-group">
           <label class="form-label">Password</label>
-          <input type="password" class="form-control" id="std-login-pass" required placeholder="••••••••" value="123">
+          <input type="password" class="form-control" id="std-login-pass" required placeholder="Enter your password" maxlength="64">
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
           <i class="fa-solid fa-right-to-bracket"></i> Login as Student
         </button>
-
-        <p class="form-hint" style="text-align: center; margin-top: 1rem;">Demo credentials pre-filled (`123`)</p>
       </form>
 
       <!-- Student Signup Form -->
@@ -271,44 +269,62 @@
 
         <div class="form-group">
           <label class="form-label">Full Name *</label>
-          <input type="text" class="form-control" id="std-reg-name" required placeholder="e.g. Rohan Sharma">
+          <input type="text" class="form-control" id="std-reg-name" required placeholder="e.g. Rohan Sharma" minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+" title="Please enter a valid name (letters and spaces only)">
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Unique Username *</label>
-            <input type="text" class="form-control" id="std-reg-username" required placeholder="e.g. rohan_2026">
+            <input type="text" class="form-control" id="std-reg-username" required placeholder="e.g. rohan_2026" minlength="3" maxlength="25" pattern="[a-zA-Z0-9_]+" title="Usernames can only contain letters, numbers, and underscores">
           </div>
           <div class="form-group">
-            <label class="form-label">Phone Number *</label>
-            <input type="tel" class="form-control" id="std-reg-phone" required placeholder="+91 9876543210">
+            <label class="form-label">Phone Number * (10 Digits)</label>
+            <input type="tel" class="form-control" id="std-reg-phone" required placeholder="10-digit mobile number (e.g. 9876543210)" maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Email Address *</label>
-            <input type="email" class="form-control" id="std-reg-email" required placeholder="student@example.com">
+            <input type="email" class="form-control" id="std-reg-email" required placeholder="student@example.com" maxlength="80">
           </div>
           <div class="form-group">
             <label class="form-label">Password *</label>
-            <input type="password" class="form-control" id="std-reg-pass" required placeholder="••••••••">
+            <input type="password" class="form-control" id="std-reg-pass" required placeholder="••••••••" minlength="8" maxlength="64" oninput="app.checkPasswordStrength(this.value, 'std')">
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="password-policy-box" id="std-pass-policy">
+          <div class="policy-title"><i class="fa-solid fa-shield-halved"></i> Strong Password Policy:</div>
+          <ul class="policy-list">
+            <li id="std-req-len"><i class="fa-solid fa-circle-xmark"></i> 8+ characters</li>
+            <li id="std-req-upper"><i class="fa-solid fa-circle-xmark"></i> Uppercase letter (A-Z)</li>
+            <li id="std-req-lower"><i class="fa-solid fa-circle-xmark"></i> Lowercase letter (a-z)</li>
+            <li id="std-req-num"><i class="fa-solid fa-circle-xmark"></i> Number (0-9)</li>
+            <li id="std-req-special" style="grid-column: span 2;"><i class="fa-solid fa-circle-xmark"></i> Special symbol (!@#$%^&* etc.)</li>
+          </ul>
+        </div>
+
+        <div class="form-group" style="margin-top: 0.85rem;">
           <label class="form-label">What are you studying / Grade *</label>
-          <input type="text" class="form-control" id="std-reg-grade" required placeholder="e.g. Class 12 CHSE/CBSE, JEE Prep, NEET Prep">
+          <input type="text" class="form-control" id="std-reg-grade" required placeholder="e.g. Class 12 CHSE/CBSE, JEE Prep, NEET Prep" minlength="2" maxlength="100">
         </div>
 
         <div class="form-group">
           <label class="form-label">City / Locality in Odisha *</label>
-          <input type="text" class="form-control" id="std-reg-location" required placeholder="e.g. Patia (Bhubaneswar), CDA Sector (Cuttack), Rourkela, Odisha">
+          <input type="text" class="form-control" id="std-reg-location" required placeholder="e.g. Patia (Bhubaneswar), CDA Sector (Cuttack), Rourkela, Odisha" minlength="2" maxlength="100">
         </div>
 
         <div class="form-group">
-          <label class="form-label">Profile Picture URL (Optional)</label>
-          <input type="url" class="form-control" id="std-reg-avatar" placeholder="https://...">
+          <label class="form-label">Profile Picture (Select from device)</label>
+          <div class="file-upload-preview-wrap">
+            <img id="std-reg-avatar-preview" src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff" class="avatar-preview-img" alt="Avatar Preview">
+            <div style="flex: 1;">
+              <input type="file" class="form-control file-input-custom" id="std-reg-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'std-reg-avatar-preview', 'std-reg-avatar-base64')">
+              <input type="hidden" id="std-reg-avatar-base64" value="">
+              <span class="form-hint" style="margin-top: 0.2rem;">Select photo from your phone or computer</span>
+            </div>
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
@@ -336,19 +352,17 @@
 
         <div class="form-group">
           <label class="form-label">Username or Email</label>
-          <input type="text" class="form-control" id="tch-login-user" required placeholder="e.g. dr_rajesh or rajesh@qpcp.edu" value="dr_rajesh">
+          <input type="text" class="form-control" id="tch-login-user" required placeholder="e.g. dr_rajesh or rajesh@qpcp.edu" maxlength="80">
         </div>
 
         <div class="form-group">
           <label class="form-label">Password</label>
-          <input type="password" class="form-control" id="tch-login-pass" required placeholder="••••••••" value="123">
+          <input type="password" class="form-control" id="tch-login-pass" required placeholder="Enter your password" maxlength="64">
         </div>
 
         <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 1rem;">
           <i class="fa-solid fa-chalkboard-user"></i> Login to Faculty Portal
         </button>
-
-        <p class="form-hint" style="text-align: center; margin-top: 1rem;">Verified Demo Faculty: `dr_rajesh` / `123` | Applicant Demo: `suresh_bio` / `123`</p>
       </form>
 
       <!-- Teacher Application Form -->
@@ -359,67 +373,84 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Full Name *</label>
-            <input type="text" class="form-control" id="tch-reg-name" required placeholder="e.g. Dr. Rajesh Verma">
+            <input type="text" class="form-control" id="tch-reg-name" required placeholder="e.g. Dr. Rajesh Verma" minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+" title="Please enter a valid name (letters and spaces only)">
           </div>
           <div class="form-group">
             <label class="form-label">Unique Username *</label>
-            <input type="text" class="form-control" id="tch-reg-username" required placeholder="e.g. rajesh_physics">
+            <input type="text" class="form-control" id="tch-reg-username" required placeholder="e.g. rajesh_physics" minlength="3" maxlength="25" pattern="[a-zA-Z0-9_]+" title="Usernames can only contain letters, numbers, and underscores">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Phone Number *</label>
-            <input type="tel" class="form-control" id="tch-reg-phone" required placeholder="+91 9988776655">
+            <label class="form-label">Phone Number * (10 Digits)</label>
+            <input type="tel" class="form-control" id="tch-reg-phone" required placeholder="10-digit mobile number (e.g. 9876543210)" maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9">
           </div>
           <div class="form-group">
             <label class="form-label">Email Address *</label>
-            <input type="email" class="form-control" id="tch-reg-email" required placeholder="teacher@example.com">
+            <input type="email" class="form-control" id="tch-reg-email" required placeholder="teacher@example.com" maxlength="80">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Subjects You Can Teach (Comma Separated) *</label>
-            <input type="text" class="form-control" id="tch-reg-subjects" required placeholder="Physics, Mathematics, JEE Prep">
+            <input type="text" class="form-control" id="tch-reg-subjects" required placeholder="Physics, Mathematics, JEE Prep" minlength="2" maxlength="150">
           </div>
           <div class="form-group">
             <label class="form-label">Per Hour Charges (₹) *</label>
-            <input type="number" class="form-control" id="tch-reg-rate" required placeholder="e.g. 500">
+            <input type="number" class="form-control" id="tch-reg-rate" required placeholder="e.g. 500" min="100" max="10000">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Teaching Experience *</label>
-            <input type="text" class="form-control" id="tch-reg-experience" required placeholder="e.g. 5 Years">
+            <input type="text" class="form-control" id="tch-reg-experience" required placeholder="e.g. 5 Years" maxlength="30">
           </div>
           <div class="form-group">
             <label class="form-label">Teaching City / Locality in Odisha *</label>
-            <input type="text" class="form-control" id="tch-reg-location" required placeholder="e.g. Bhubaneswar, Cuttack, Rourkela, Odisha">
+            <input type="text" class="form-control" id="tch-reg-location" required placeholder="e.g. Bhubaneswar, Cuttack, Rourkela, Odisha" minlength="2" maxlength="100">
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Demo Video Link (YouTube embed link or direct video URL 30s-5min) *</label>
-          <input type="url" class="form-control" id="tch-reg-video" required placeholder="https://www.youtube.com/embed/..." value="https://www.youtube.com/embed/dQw4w9WgXcQ">
+          <input type="url" class="form-control" id="tch-reg-video" required placeholder="https://www.youtube.com/embed/..." maxlength="250">
           <span class="form-hint">Students will watch this 30s-5min demo video to introduce yourself!</span>
         </div>
 
         <div class="form-group">
           <label class="form-label">Bio & Qualifications *</label>
-          <textarea class="form-control" id="tch-reg-bio" required placeholder="Describe your teaching methodology, degrees, and past results..."></textarea>
+          <textarea class="form-control" id="tch-reg-bio" required placeholder="Describe your teaching methodology, degrees, and past results..." minlength="20" maxlength="500"></textarea>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Password *</label>
-            <input type="password" class="form-control" id="tch-reg-pass" required placeholder="••••••••">
+            <input type="password" class="form-control" id="tch-reg-pass" required placeholder="••••••••" minlength="8" maxlength="64" oninput="app.checkPasswordStrength(this.value, 'tch')">
           </div>
           <div class="form-group">
-            <label class="form-label">Profile Picture URL (Optional)</label>
-            <input type="url" class="form-control" id="tch-reg-avatar" placeholder="https://...">
+            <label class="form-label">Profile Picture (Select from device)</label>
+            <div class="file-upload-preview-wrap">
+              <img id="tch-reg-avatar-preview" src="https://ui-avatars.com/api/?name=Faculty&background=2563eb&color=fff" class="avatar-preview-img" alt="Avatar Preview">
+              <div style="flex: 1;">
+                <input type="file" class="form-control file-input-custom" id="tch-reg-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'tch-reg-avatar-preview', 'tch-reg-avatar-base64')">
+                <input type="hidden" id="tch-reg-avatar-base64" value="">
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div class="password-policy-box" id="tch-pass-policy">
+          <div class="policy-title"><i class="fa-solid fa-shield-halved"></i> Strong Password Policy:</div>
+          <ul class="policy-list">
+            <li id="tch-req-len"><i class="fa-solid fa-circle-xmark"></i> 8+ characters</li>
+            <li id="tch-req-upper"><i class="fa-solid fa-circle-xmark"></i> Uppercase letter (A-Z)</li>
+            <li id="tch-req-lower"><i class="fa-solid fa-circle-xmark"></i> Lowercase letter (a-z)</li>
+            <li id="tch-req-num"><i class="fa-solid fa-circle-xmark"></i> Number (0-9)</li>
+            <li id="tch-req-special" style="grid-column: span 2;"><i class="fa-solid fa-circle-xmark"></i> Special symbol (!@#$%^&* etc.)</li>
+          </ul>
         </div>
 
         <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 1rem;">
@@ -451,17 +482,23 @@
       <form id="student-edit-form" onsubmit="app.handleUpdateStudentProfile(event)">
         <div class="form-group">
           <label class="form-label">Full Name</label>
-          <input type="text" class="form-control" id="edit-std-name" required>
+          <input type="text" class="form-control" id="edit-std-name" required minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+">
         </div>
 
         <div class="form-group">
-          <label class="form-label">Phone Number</label>
-          <input type="tel" class="form-control" id="edit-std-phone" required>
+          <label class="form-label">Phone Number * (10 Digits)</label>
+          <input type="tel" class="form-control" id="edit-std-phone" required maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
 
         <div class="form-group">
-          <label class="form-label">Profile Picture URL</label>
-          <input type="url" class="form-control" id="edit-std-avatar">
+          <label class="form-label">Profile Picture (Select from device)</label>
+          <div class="file-upload-preview-wrap">
+            <img id="edit-std-avatar-preview" src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff" class="avatar-preview-img" alt="Avatar Preview">
+            <div style="flex: 1;">
+              <input type="file" class="form-control file-input-custom" id="edit-std-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'edit-std-avatar-preview', 'edit-std-avatar-base64')">
+              <input type="hidden" id="edit-std-avatar-base64" value="">
+            </div>
+          </div>
         </div>
 
         <div class="form-group">

@@ -837,7 +837,24 @@ class AppController {
       `Applied for 1-on-1 home tutoring in Odisha (${user.location}) with ${teacher.name}.`
     );
 
-    const msg = `Hello Quick Progressive Carrier Point (Odisha)! 👋\n\nI am *${user.name}* (Studying: ${user.grade}, Locality/City: ${user.location}).\nI want to apply for 1-on-1 Home Tutor *${teacher.name}* (${teacher.subjects.join(', ')}) at ₹${teacher.rate}/hr.\n\nPlease confirm home slot and coordinator details.`;
+    const msg = `Hello Quick Progressive Carrier Point (Odisha HQ)!
+
+*NEW 1-ON-1 HOME TUTOR APPLICATION*
+
+*STUDENT DETAILS:*
+- Name: ${user.name}
+- Class/Grade: ${user.grade}
+- Locality & City: ${user.location}
+- Phone: ${user.phone || 'N/A'}
+- Email: ${user.email || 'N/A'}
+
+*HOME TUTOR APPLIED FOR:*
+- Faculty Name: ${teacher.name}
+- Subjects: ${teacher.subjects.join(', ')}
+- Tutor Locality: ${teacher.location}
+- Hourly Rate: Rs.${teacher.rate} / hr
+
+Please verify home slot availability, assign a coordinator, and contact us to schedule the first 1-on-1 demo session. Thank you!`;
     const waUrl = `https://wa.me/917008221300?text=${encodeURIComponent(msg)}`;
 
     this.showToast(`Inquiry created! Opening WhatsApp to request Home Tutor ${teacher.name}...`, 'success');
@@ -1136,6 +1153,9 @@ class AppController {
                     <button class="btn btn-primary btn-sm" onclick="app.handleAdminApproveTeacher('${app.id}')">
                       <i class="fa-solid fa-check"></i> Approve & Publish
                     </button>
+                    <button class="btn btn-danger btn-sm" onclick="app.handleAdminRemoveUser('${app.id}', '${app.name}')">
+                      <i class="fa-solid fa-user-xmark"></i> Reject & Remove
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1174,7 +1194,10 @@ class AppController {
                   <td><strong style="color: var(--accent-emerald);">₹${t.rate}</strong></td>
                   <td>${t.phone}<br><span style="font-size: 0.8rem; color: var(--text-muted);">${t.email}</span></td>
                   <td>
-                    <button class="btn btn-secondary btn-sm" onclick="app.openTeacherVideoModal('${t.id}')"><i class="fa-solid fa-film"></i> Demo</button>
+                    <div style="display: flex; gap: 0.4rem;">
+                      <button class="btn btn-secondary btn-sm" onclick="app.openTeacherVideoModal('${t.id}')"><i class="fa-solid fa-film"></i> Demo</button>
+                      <button class="btn btn-danger btn-sm" onclick="app.handleAdminRemoveUser('${t.id}', '${t.name}')"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                    </div>
                   </td>
                 </tr>
               `).join('')}
@@ -1194,6 +1217,7 @@ class AppController {
                 <th>Grade / Study</th>
                 <th>Phone Number</th>
                 <th>Email</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -1212,6 +1236,9 @@ class AppController {
                   <td>${s.grade}</td>
                   <td><strong style="color: var(--text-main);">${s.phone}</strong></td>
                   <td>${s.email}</td>
+                  <td>
+                    <button class="btn btn-danger btn-sm" onclick="app.handleAdminRemoveUser('${s.id}', '${s.name}')"><i class="fa-solid fa-user-minus"></i> Remove</button>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -1318,6 +1345,18 @@ class AppController {
     }
   }
 
+  handleAdminRemoveUser(userId, userName) {
+    if (confirm(`Are you sure you want to remove "${userName}" from Quick Progressive Carrier Point? This will delete their profile and all associated data.`)) {
+      try {
+        store.removeUser(userId);
+        this.showToast(`User "${userName}" has been removed from the platform.`, 'success');
+        this.renderMainView();
+      } catch (err) {
+        this.showToast(err.message, 'error');
+      }
+    }
+  }
+
   handleAdminQuickAssign(teacherId, studentId) {
     try {
       store.assignTeacherToStudent(teacherId, studentId);
@@ -1333,6 +1372,98 @@ class AppController {
     const tId = document.getElementById('assign-teacher-select').value;
     const sId = document.getElementById('assign-student-select').value;
     this.handleAdminQuickAssign(tId, sId);
+  }
+
+  // --- Password Policy & Helper Tools ---
+  validateStrongPassword(password) {
+    if (!password || password.length < 8) {
+      return { valid: false, message: 'Password must be at least 8 characters long.' };
+    }
+    if (!/[A-Z]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least 1 uppercase letter (A-Z).' };
+    }
+    if (!/[a-z]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least 1 lowercase letter (a-z).' };
+    }
+    if (!/[0-9]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least 1 number (0-9).' };
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least 1 special character (!@#$%^&* etc.).' };
+    }
+    return { valid: true };
+  }
+
+  checkPasswordStrength(val, prefix) {
+    const rules = [
+      { id: `${prefix}-req-len`, test: val.length >= 8 },
+      { id: `${prefix}-req-upper`, test: /[A-Z]/.test(val) },
+      { id: `${prefix}-req-lower`, test: /[a-z]/.test(val) },
+      { id: `${prefix}-req-num`, test: /[0-9]/.test(val) },
+      { id: `${prefix}-req-special`, test: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(val) }
+    ];
+
+    rules.forEach(r => {
+      const el = document.getElementById(r.id);
+      if (!el) return;
+      if (r.test) {
+        el.className = 'valid';
+        el.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${el.textContent.trim()}`;
+      } else {
+        el.className = '';
+        el.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ${el.textContent.trim()}`;
+      }
+    });
+  }
+
+  toggleDemoCredentials(type) {
+    const boxId = type === 'student' ? 'student-demo-creds-box' : 'teacher-demo-creds-box';
+    const box = document.getElementById(boxId);
+    if (!box) return;
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  }
+
+  handleImageFileSelect(event, previewId, hiddenInputId) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.showToast('Please select a valid image file (JPG, PNG, WEBP).', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.showToast('Image file size must be less than 5MB.', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      const previewImg = document.getElementById(previewId);
+      const hiddenInput = document.getElementById(hiddenInputId);
+      if (previewImg) previewImg.src = dataUrl;
+      if (hiddenInput) hiddenInput.value = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  validatePhone(phone) {
+    const cleaned = (phone || '').replace(/[^0-9]/g, '');
+    if (!/^[6-9]\d{9}$/.test(cleaned)) {
+      return { valid: false, message: 'Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' };
+    }
+    return { valid: true };
+  }
+
+  validateUsername(username) {
+    if (!username || username.length < 3 || username.length > 25) {
+      return { valid: false, message: 'Username must be between 3 and 25 characters.' };
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return { valid: false, message: 'Username can only contain letters, numbers, and underscores.' };
+    }
+    return { valid: true };
   }
 
   // --- Auth & Form Handlers ---
@@ -1353,15 +1484,40 @@ class AppController {
 
   handleStudentSignup(e) {
     e.preventDefault();
+    const username = document.getElementById('std-reg-username').value;
+    const phone = document.getElementById('std-reg-phone').value;
+    const pass = document.getElementById('std-reg-pass').value;
+
+    const userCheck = this.validateUsername(username);
+    if (!userCheck.valid) {
+      this.showToast(userCheck.message, 'error');
+      return;
+    }
+
+    const phoneCheck = this.validatePhone(phone);
+    if (!phoneCheck.valid) {
+      this.showToast(phoneCheck.message, 'error');
+      return;
+    }
+
+    const passCheck = this.validateStrongPassword(pass);
+    if (!passCheck.valid) {
+      this.showToast(passCheck.message, 'error');
+      return;
+    }
+
+    const base64Avatar = document.getElementById('std-reg-avatar-base64').value;
+    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(document.getElementById('std-reg-name').value)}&background=2563eb&color=fff`;
+
     const data = {
       name: document.getElementById('std-reg-name').value,
-      username: document.getElementById('std-reg-username').value,
-      phone: document.getElementById('std-reg-phone').value,
+      username,
+      phone: `+91 ${phone.replace(/[^0-9]/g, '')}`,
       email: document.getElementById('std-reg-email').value,
-      password: document.getElementById('std-reg-pass').value,
+      password: pass,
       grade: document.getElementById('std-reg-grade').value,
       location: document.getElementById('std-reg-location').value,
-      avatar: document.getElementById('std-reg-avatar').value
+      avatar: base64Avatar || defaultAvatar
     };
 
     try {
@@ -1391,10 +1547,35 @@ class AppController {
 
   handleTeacherSignup(e) {
     e.preventDefault();
+    const username = document.getElementById('tch-reg-username').value;
+    const phone = document.getElementById('tch-reg-phone').value;
+    const pass = document.getElementById('tch-reg-pass').value;
+
+    const userCheck = this.validateUsername(username);
+    if (!userCheck.valid) {
+      this.showToast(userCheck.message, 'error');
+      return;
+    }
+
+    const phoneCheck = this.validatePhone(phone);
+    if (!phoneCheck.valid) {
+      this.showToast(phoneCheck.message, 'error');
+      return;
+    }
+
+    const passCheck = this.validateStrongPassword(pass);
+    if (!passCheck.valid) {
+      this.showToast(passCheck.message, 'error');
+      return;
+    }
+
+    const base64Avatar = document.getElementById('tch-reg-avatar-base64').value;
+    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(document.getElementById('tch-reg-name').value)}&background=2563eb&color=fff`;
+
     const data = {
       name: document.getElementById('tch-reg-name').value,
-      username: document.getElementById('tch-reg-username').value,
-      phone: document.getElementById('tch-reg-phone').value,
+      username,
+      phone: `+91 ${phone.replace(/[^0-9]/g, '')}`,
       email: document.getElementById('tch-reg-email').value,
       subjects: document.getElementById('tch-reg-subjects').value,
       rate: document.getElementById('tch-reg-rate').value,
@@ -1402,8 +1583,8 @@ class AppController {
       location: document.getElementById('tch-reg-location').value,
       videoUrl: document.getElementById('tch-reg-video').value,
       bio: document.getElementById('tch-reg-bio').value,
-      password: document.getElementById('tch-reg-pass').value,
-      avatar: document.getElementById('tch-reg-avatar').value
+      password: pass,
+      avatar: base64Avatar || defaultAvatar
     };
 
     try {
@@ -1423,8 +1604,16 @@ class AppController {
 
     document.getElementById('edit-std-name').value = user.name || '';
     document.getElementById('edit-std-phone').value = user.phone || '';
-    document.getElementById('edit-std-avatar').value = user.avatar || '';
     document.getElementById('edit-std-username').value = user.username || '';
+
+    const preview = document.getElementById('edit-std-avatar-preview');
+    if (preview && user.avatar) {
+      preview.src = user.avatar;
+    }
+    const hiddenInput = document.getElementById('edit-std-avatar-base64');
+    if (hiddenInput) {
+      hiddenInput.value = user.avatar || '';
+    }
 
     this.openModal('student-edit-modal');
   }
@@ -1434,10 +1623,12 @@ class AppController {
     const user = store.getCurrentUser();
     if (!user) return;
 
+    const base64Avatar = document.getElementById('edit-std-avatar-base64').value;
+
     const updates = {
       name: document.getElementById('edit-std-name').value,
       phone: document.getElementById('edit-std-phone').value,
-      avatar: document.getElementById('edit-std-avatar').value
+      avatar: base64Avatar || user.avatar
     };
 
     try {

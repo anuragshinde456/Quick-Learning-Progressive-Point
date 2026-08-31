@@ -301,6 +301,17 @@ img {
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
 }
 
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
 .btn-secondary {
   background: #ffffff;
   color: var(--text-main);
@@ -998,6 +1009,77 @@ textarea.form-control {
   font-weight: 500;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Password Policy UI */
+.password-policy-box {
+  background: var(--bg-main);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.78rem;
+}
+
+.password-policy-box .policy-title {
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.password-policy-box .policy-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 0.5rem;
+}
+
+.password-policy-box .policy-list li {
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 0.2s ease;
+  font-weight: 500;
+}
+
+.password-policy-box .policy-list li.valid {
+  color: #10b981;
+}
+
+/* File Upload & Avatar Preview */
+.file-upload-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-main);
+  border: 1.5px dashed var(--primary);
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-md);
+  margin-top: 0.35rem;
+}
+
+.avatar-preview-img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+
+.file-input-custom {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  background: #ffffff;
 }
 
 /* Dashboard Layout */
