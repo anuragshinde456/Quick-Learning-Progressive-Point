@@ -1,5 +1,5 @@
 /**
- * Quick Progressive Carrier Point - Application Controller
+ * Quick Progressive Career Point - Application Controller
  * Premier 1-on-1 Home Tutoring Network across all of Odisha
  * Cities & Districts Covered: Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore, Puri & all 30 Districts
  */
@@ -136,7 +136,7 @@ class AppController {
         this.showToast('Logged in as Verified Faculty (Dr. Rajesh Verma, Infocity)', 'success');
       } else if (role === 'admin') {
         store.login('admin', 'admin');
-        this.showToast('Logged in as System Admin (QPCP Odisha HQ)', 'success');
+        this.showToast('Logged in as Admin', 'success');
       }
       this.init();
     } catch (err) {
@@ -183,9 +183,13 @@ class AppController {
         mobileDashboardBtn = `<button class="btn btn-primary" onclick="app.renderMainView(); app.toggleMobileMenu();" style="width: 100%;"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>`;
       }
 
+      const avatarMarkup = user.avatar 
+        ? `<img src="${user.avatar}" alt="${user.name}" class="user-avatar-tiny">` 
+        : `<div class="user-avatar-tiny" style="background: #334155; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;"><i class="fa-solid fa-user-shield"></i></div>`;
+
       html = `
         <div class="user-menu-pill">
-          <img src="${user.avatar}" alt="${user.name}" class="user-avatar-tiny">
+          ${avatarMarkup}
           <div style="line-height: 1.2;">
             <strong style="font-size: 0.85rem; color: var(--text-main);">${user.name}</strong>
             <div style="font-size: 0.72rem; color: var(--text-muted);">@${user.username}</div>
@@ -199,7 +203,7 @@ class AppController {
       mobileHtml = `
         <div class="user-menu-pill" style="justify-content: space-between; margin-bottom: 0.5rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <img src="${user.avatar}" alt="${user.name}" class="user-avatar-tiny">
+            ${avatarMarkup}
             <div>
               <strong style="font-size: 0.9rem; color: var(--text-main);">${user.name}</strong>
               <div style="font-size: 0.75rem; color: var(--text-muted);">@${user.username}</div>
@@ -270,7 +274,7 @@ class AppController {
               Find Premier <span class="gradient-text">Home Tutors in Odisha</span>
             </h1>
             <p class="hero-desc">
-              Quick Progressive Carrier Point connects students across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur & all over Odisha with top 1-on-1 home tutors. Watch 30s to 5-min recorded intro videos and apply instantly via WhatsApp.
+              Quick Progressive Career Point connects students across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur & all over Odisha with top 1-on-1 home tutors. Watch 30s to 5-min recorded intro videos and apply instantly via WhatsApp.
             </p>
             <div class="hero-actions">
               <button class="btn btn-primary" onclick="app.openStudentAuth('signup')">
@@ -466,7 +470,7 @@ class AppController {
     } else if (this.studentActiveTab === 'assigned') {
       container.innerHTML = `
         <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Official Assigned Home Tutors</h2>
-        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">Faculty assigned to you by Quick Progressive Carrier Point Admin for 1-on-1 home tutoring.</p>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">Faculty assigned to you by Quick Progressive Career Point Admin for 1-on-1 home tutoring.</p>
 
         ${myAssignments.length === 0 ? `
           <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 2.5rem; text-align: center; border-radius: var(--radius-lg);">
@@ -540,9 +544,9 @@ class AppController {
       <section class="hero" style="padding-top: 2rem; padding-bottom: 3rem;">
         <div class="container" style="text-align: center; max-width: 820px;">
           <div class="hero-tag"><i class="fa-solid fa-map-pin"></i> Serving All 30 Districts of Odisha</div>
-          <h1 class="hero-title">About <span class="gradient-text">Quick Progressive Carrier Point</span></h1>
+          <h1 class="hero-title">About <span class="gradient-text">Quick Progressive Career Point</span></h1>
           <p class="hero-desc" style="margin: 0 auto 2rem;">
-            Quick Progressive Carrier Point is Odisha's premier 1-on-1 home tutoring platform, connecting ambitious students with verified expert home tutors across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore & all 30 districts of Odisha.
+            Quick Progressive Career Point is Odisha's premier 1-on-1 home tutoring platform, connecting ambitious students with verified expert home tutors across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore & all 30 districts of Odisha.
           </p>
         </div>
       </section>
@@ -837,7 +841,7 @@ class AppController {
       `Applied for 1-on-1 home tutoring in Odisha (${user.location}) with ${teacher.name}.`
     );
 
-    const msg = `Hello Quick Progressive Carrier Point (Odisha HQ)!
+    const msg = `Hello Quick Progressive Career Point (Odisha HQ)!
 
 *NEW 1-ON-1 HOME TUTOR APPLICATION*
 
@@ -872,7 +876,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
           </div>
           <h2 style="font-size: 1.75rem; margin-bottom: 0.85rem;">Home Tutor Application Under Review</h2>
           <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.6;">
-            Welcome, <strong>${user.name}</strong>! Your home tutor application for <strong>Odisha</strong> has been submitted successfully to <strong>Quick Progressive Carrier Point</strong>.
+            Welcome, <strong>${user.name}</strong>! Your home tutor application for <strong>Odisha</strong> has been submitted successfully to <strong>Quick Progressive Career Point</strong>.
           </p>
 
           <div style="background: var(--bg-main); border: 1px solid var(--glass-border); padding: 1.1rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 1.5rem;">
@@ -1053,10 +1057,6 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
             <span class="role-badge admin"><i class="fa-solid fa-user-gear"></i> System Administrator (QPCP Odisha HQ)</span>
             <h1 class="page-title">Admin Command Center</h1>
           </div>
-          <div class="page-header-actions">
-            <button class="btn btn-secondary btn-sm" onclick="app.openModal('supabase-config-modal')"><i class="fa-solid fa-database"></i> Supabase Config</button>
-            <button class="btn btn-secondary btn-sm" onclick="app.showHome()"><i class="fa-solid fa-eye"></i> Public View</button>
-          </div>
         </div>
 
         <div class="dashboard-grid">
@@ -1147,7 +1147,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
                   </button>
 
                   <div class="dash-card-btn-group">
-                    <a href="https://wa.me/${app.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(app.name)},%20this%20is%20Quick%20Progressive%20Carrier%20Point%20Odisha%20Admin.%20We%20received%20your%20home%20tutor%20application!" target="_blank" class="btn btn-whatsapp btn-sm">
+                    <a href="https://wa.me/${app.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(app.name)},%20this%20is%20Quick%20Progressive%20Career%20Point%20Odisha%20Admin.%20We%20received%20your%20home%20tutor%20application!" target="_blank" class="btn btn-whatsapp btn-sm">
                       <i class="fa-brands fa-whatsapp"></i> WhatsApp Interview
                     </a>
                     <button class="btn btn-primary btn-sm" onclick="app.handleAdminApproveTeacher('${app.id}')">
@@ -1346,7 +1346,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   }
 
   handleAdminRemoveUser(userId, userName) {
-    if (confirm(`Are you sure you want to remove "${userName}" from Quick Progressive Carrier Point? This will delete their profile and all associated data.`)) {
+    if (confirm(`Are you sure you want to remove "${userName}" from Quick Progressive Career Point? This will delete their profile and all associated data.`)) {
       try {
         store.removeUser(userId);
         this.showToast(`User "${userName}" has been removed from the platform.`, 'success');

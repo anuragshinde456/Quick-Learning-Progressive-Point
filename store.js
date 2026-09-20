@@ -1,11 +1,11 @@
 /**
- * Quick Progressive Carrier Point - Data Store
+ * Quick Progressive Career Point - Data Store
  * Reactive LocalStorage persistence with sample demo data & privacy filter helpers
  * Integrated with Supabase database (Project: sgnwwmoehuwhzhdxmwbg).
  * Premier 1-on-1 Home Tutoring Network across all of Odisha.
  */
 
-const STORAGE_KEY = 'QPCP_APP_DATA_V7';
+const STORAGE_KEY = 'QPCP_APP_DATA_V8';
 const SUPABASE_CONFIG_KEY = 'QPCP_SUPABASE_CONFIG';
 
 const DEFAULT_SUPABASE_URL = 'https://sgnwwmoehuwhzhdxmwbg.supabase.co';
@@ -135,11 +135,11 @@ const initialDemoData = {
     {
       id: 'adm_1',
       role: 'admin',
-      name: 'QPCP Central Admin (Odisha HQ)',
+      name: 'Admin',
       username: 'admin',
       phone: '+91 70082 21300',
       email: 'admin@quickprogressive.edu.in',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+      avatar: '',
       password: 'Admin@QPCP2026!'
     }
   ],
@@ -152,7 +152,7 @@ const initialDemoData = {
       teacherId: 'tch_1',
       teacherName: 'Dr. Rajesh Verma',
       subject: 'Physics',
-      message: 'Looking for 1-on-1 home tutoring in Odisha for Class 12 Boards & JEE via Quick Progressive Carrier Point.',
+      message: 'Looking for 1-on-1 home tutoring in Odisha for Class 12 Boards & JEE via Quick Progressive Career Point.',
       status: 'pending',
       createdAt: '2026-08-06T10:15:00Z'
     },
@@ -255,7 +255,7 @@ class DataStore {
     if (window.supabase && window.supabase.createClient) {
       try {
         this.supabase = window.supabase.createClient(url, key);
-        console.log('⚡ Supabase Client initialized for Quick Progressive Carrier Point (Odisha)');
+        console.log('⚡ Supabase Client initialized for Quick Progressive Career Point (Odisha)');
       } catch (e) {
         console.warn('Could not initialize Supabase client:', e);
       }
@@ -354,7 +354,7 @@ class DataStore {
       rate: Number(teacherData.rate) || 500,
       experience: teacherData.experience,
       location: teacherData.location || 'Odisha',
-      bio: teacherData.bio,
+      bio: teacherData.bio || 'Experienced home tutor in Odisha.',
       videoUrl: teacherData.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
       avatar: teacherData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacherData.name)}&background=059669&color=fff`,
       status: 'pending',
@@ -431,7 +431,7 @@ class DataStore {
       teacherId,
       teacherName: teacher ? teacher.name : 'Unknown Teacher',
       subject: subject || (teacher ? teacher.subjects[0] : 'General Inquiry'),
-      message: message || 'Applied for 1-on-1 home tutoring in Odisha via Quick Progressive Carrier Point.',
+      message: message || 'Applied for 1-on-1 home tutoring in Odisha via Quick Progressive Career Point.',
       status: 'pending',
       createdAt: new Date().toISOString()
     };
