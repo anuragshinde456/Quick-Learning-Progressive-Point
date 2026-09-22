@@ -532,6 +532,18 @@ class DataStore {
     }
 
     this.saveData();
+
+    if (this.supabase) {
+      this.supabase.from('users').update({
+        role: 'verified_teacher',
+        status: 'approved',
+        rating: 5.0,
+        totalStudents: 0
+      }).eq('id', applicantId).then(res => {
+        if (res.error) console.info('Supabase Update Note:', res.error.message);
+      });
+    }
+
     return this.data.users[userIndex];
   }
 
@@ -551,6 +563,13 @@ class DataStore {
     }
 
     this.saveData();
+
+    if (this.supabase) {
+      this.supabase.from('users').delete().eq('id', userId).then(res => {
+        if (res.error) console.info('Supabase Delete Note:', res.error.message);
+      });
+    }
+
     return removedUser;
   }
 
