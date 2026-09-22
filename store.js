@@ -517,7 +517,7 @@ class DataStore {
     return newReq;
   }
 
-  approveTeacherApplicant(applicantId) {
+  async approveTeacherApplicant(applicantId) {
     const userIndex = this.data.users.findIndex(u => u.id === applicantId);
     if (userIndex === -1) throw new Error('Applicant not found');
 
@@ -534,20 +534,23 @@ class DataStore {
     this.saveData();
 
     if (this.supabase) {
-      this.supabase.from('users').update({
-        role: 'verified_teacher',
-        status: 'approved',
-        rating: 5.0,
-        totalStudents: 0
-      }).eq('id', applicantId).then(res => {
-        if (res.error) console.info('Supabase Update Note:', res.error.message);
-      });
+      try {
+        const { error } = await this.supabase.from('users').update({
+          role: 'verified_teacher',
+          status: 'approved',
+          rating: 5.0,
+          totalStudents: 0
+        }).eq('id', applicantId);
+        if (error) console.error('Supabase Approval Error:', error.message);
+      } catch (e) {
+        console.warn('Supabase approval note:', e);
+      }
     }
 
     return this.data.users[userIndex];
   }
 
-  removeUser(userId) {
+  async removeUser(userId) {
     const idx = this.data.users.findIndex(u => u.id === userId);
     if (idx === -1) throw new Error('User not found');
 
@@ -565,9 +568,12 @@ class DataStore {
     this.saveData();
 
     if (this.supabase) {
-      this.supabase.from('users').delete().eq('id', userId).then(res => {
-        if (res.error) console.info('Supabase Delete Note:', res.error.message);
-      });
+      try {
+        const { error } = await this.supabase.from('users').delete().eq('id', userId);
+        if (error) console.error('Supabase Delete Error:', error.message);
+      } catch (e) {
+        console.warn('Supabase delete note:', e);
+      }
     }
 
     return removedUser;

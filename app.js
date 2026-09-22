@@ -1342,9 +1342,9 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     }
   }
 
-  handleAdminApproveTeacher(applicantId) {
+  async handleAdminApproveTeacher(applicantId) {
     try {
-      store.approveTeacherApplicant(applicantId);
+      await store.approveTeacherApplicant(applicantId);
       this.showToast('Home tutor approved & published live!', 'success');
       this.renderMainView();
     } catch (err) {
@@ -1352,10 +1352,10 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     }
   }
 
-  handleAdminRemoveUser(userId, userName) {
+  async handleAdminRemoveUser(userId, userName) {
     if (confirm(`Are you sure you want to remove "${userName}" from Quick Progressive Career Point? This will delete their profile and all associated data.`)) {
       try {
-        store.removeUser(userId);
+        await store.removeUser(userId);
         this.showToast(`User "${userName}" has been removed from the platform.`, 'success');
         this.renderMainView();
       } catch (err) {
