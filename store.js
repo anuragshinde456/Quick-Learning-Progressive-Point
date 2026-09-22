@@ -256,9 +256,58 @@ class DataStore {
       try {
         this.supabase = window.supabase.createClient(url, key);
         console.log('⚡ Supabase Client initialized for Quick Progressive Career Point (Odisha)');
+        this.syncFromSupabase();
       } catch (e) {
         console.warn('Could not initialize Supabase client:', e);
       }
+    }
+  }
+
+  async syncFromSupabase() {
+    if (!this.supabase) return;
+    try {
+      const { data: users, error: errUsers } = await this.supabase.from('users').select('*');
+      if (users && users.length > 0) {
+        users.forEach(u => {
+          const idx = this.data.users.findIndex(x => x.id === u.id || (x.username && u.username && x.username.toLowerCase() === u.username.toLowerCase()));
+          if (idx === -1) {
+            this.data.users.push(u);
+          } else {
+            this.data.users[idx] = { ...this.data.users[idx], ...u };
+          }
+        });
+      }
+
+      const { data: inquiries } = await this.supabase.from('inquiries').select('*');
+      if (inquiries && inquiries.length > 0) {
+        inquiries.forEach(inq => {
+          if (!this.data.inquiries.some(x => x.id === inq.id)) {
+            this.data.inquiries.push(inq);
+          }
+        });
+      }
+
+      const { data: assignments } = await this.supabase.from('assignments').select('*');
+      if (assignments && assignments.length > 0) {
+        assignments.forEach(asg => {
+          if (!this.data.assignments.some(x => x.id === asg.id)) {
+            this.data.assignments.push(asg);
+          }
+        });
+      }
+
+      const { data: teacherRequests } = await this.supabase.from('teacher_requests').select('*');
+      if (teacherRequests && teacherRequests.length > 0) {
+        teacherRequests.forEach(tr => {
+          if (!this.data.teacherRequests.some(x => x.id === tr.id)) {
+            this.data.teacherRequests.push(tr);
+          }
+        });
+      }
+
+      this.saveData();
+    } catch (e) {
+      console.warn('Supabase sync note:', e);
     }
   }
 
