@@ -427,6 +427,17 @@
           <textarea class="form-control" id="tch-reg-bio" placeholder="Describe your teaching methodology, degrees, and past results..." maxlength="500"></textarea>
         </div>
 
+        <div class="form-group">
+          <label class="form-label">Upload CV / Resume (Optional - PDF, DOC, or Image)</label>
+          <div class="file-upload-preview-wrap">
+            <div style="flex: 1;">
+              <input type="file" class="form-control file-input-custom" id="tch-reg-cv-file" accept=".pdf,image/*,.doc,.docx" onchange="app.handleCvFileSelect(event, 'tch-reg-cv-base64', 'tch-reg-cv-name')">
+              <input type="hidden" id="tch-reg-cv-base64" value="">
+              <span class="form-hint" id="tch-reg-cv-name" style="margin-top: 0.25rem; display: block;">Select CV file from your phone or computer</span>
+            </div>
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Password *</label>

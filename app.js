@@ -1139,6 +1139,13 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
                   <div style="margin-top: 0.25rem;"><strong>Phone:</strong> ${app.phone}</div>
                   <div style="margin-top: 0.25rem; word-break: break-all;"><strong>Email:</strong> ${app.email}</div>
                   <div style="margin-top: 0.4rem;"><strong>Bio:</strong> ${app.bio}</div>
+                  ${app.cvUrl ? `
+                    <div style="margin-top: 0.5rem;">
+                      <a href="${app.cvUrl}" download="${(app.name || 'Candidate').replace(/\s+/g, '_')}_CV" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem;">
+                        <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> View / Download Uploaded CV
+                      </a>
+                    </div>
+                  ` : ''}
                 </div>
 
                 <div class="dash-card-actions">
@@ -1448,6 +1455,26 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     reader.readAsDataURL(file);
   }
 
+  handleCvFileSelect(event, hiddenInputId, nameHintId) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.showToast('CV file size must be less than 10MB.', 'error');
+      return;
+    }
+
+    const nameHint = document.getElementById(nameHintId);
+    if (nameHint) nameHint.textContent = `📄 Selected CV: ${file.name}`;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const hiddenInput = document.getElementById(hiddenInputId);
+      if (hiddenInput) hiddenInput.value = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   validatePhone(phone) {
     const cleaned = (phone || '').replace(/[^0-9]/g, '');
     if (!/^[6-9]\d{9}$/.test(cleaned)) {
@@ -1583,6 +1610,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       location: document.getElementById('tch-reg-location').value,
       videoUrl: document.getElementById('tch-reg-video').value,
       bio: document.getElementById('tch-reg-bio').value,
+      cvUrl: document.getElementById('tch-reg-cv-base64') ? document.getElementById('tch-reg-cv-base64').value : '',
       password: pass,
       avatar: base64Avatar || defaultAvatar
     };

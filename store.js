@@ -405,6 +405,7 @@ class DataStore {
       location: teacherData.location || 'Odisha',
       bio: teacherData.bio || 'Experienced home tutor in Odisha.',
       videoUrl: teacherData.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      cvUrl: teacherData.cvUrl || '',
       avatar: teacherData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacherData.name)}&background=059669&color=fff`,
       status: 'pending',
       appliedAt: new Date().toISOString(),
