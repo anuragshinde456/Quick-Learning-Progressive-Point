@@ -20,7 +20,8 @@ class DataStore {
       students: [],
       inquiries: [],
       teacherRequests: [],
-      assignments: []
+      assignments: [],
+      gallery: []
     };
     this.initSupabaseClient();
   }
@@ -90,6 +91,16 @@ class DataStore {
       console.warn('Supabase Direct REST Fetch Note:', e);
     }
 
+    let gallery = null;
+    try {
+      const galRes = await fetch('/api/gallery', { cache: 'no-store' });
+      if (galRes.ok) {
+        gallery = await galRes.json();
+      }
+    } catch (e) {
+      console.warn('Gallery API Sync Note:', e);
+    }
+
     let hasChanged = false;
 
     if (users && Array.isArray(users)) {
@@ -150,6 +161,15 @@ class DataStore {
       hasChanged = true;
     }
 
+    if (gallery && Array.isArray(gallery)) {
+      const prevGalStr = JSON.stringify(this.data.gallery || []);
+      const newGalStr = JSON.stringify(gallery);
+      if (prevGalStr !== newGalStr) {
+        this.data.gallery = gallery;
+        hasChanged = true;
+      }
+    }
+
     // Keep currentUser in sync with DB state
     if (this.data.currentUser) {
       const dbMatch = this.data.users.find(u => u.id === this.data.currentUser.id || u.username === this.data.currentUser.username);
@@ -205,6 +225,10 @@ class DataStore {
   }
 
   async registerStudent(studentData) {
+    if (!studentData.privacyConsent && !studentData.dpdpConsent) {
+      throw new Error('Please agree to the Terms of Service and Privacy Policy to register.');
+    }
+
     await this.syncFromSupabase();
     const existing = this.data.users.find(u => u.username && u.username.toLowerCase() === studentData.username.toLowerCase());
     if (existing) {
@@ -235,12 +259,18 @@ class DataStore {
       throw new Error(`Supabase DB Insert Failed (HTTP ${res.status}): ${errText}`);
     }
 
+    newStudent.dpdpConsent = true;
+    newStudent.consentDate = new Date().toISOString();
     this.setCurrentUser(newStudent);
     await this.syncFromSupabase();
     return newStudent;
   }
 
   async registerTeacher(teacherData) {
+    if (!teacherData.privacyConsent && !teacherData.dpdpConsent) {
+      throw new Error('Please agree to the Terms of Service and Privacy Policy to apply.');
+    }
+
     await this.syncFromSupabase();
     const existing = this.data.users.find(u => u.username && u.username.toLowerCase() === teacherData.username.toLowerCase());
     if (existing) {
@@ -282,6 +312,8 @@ class DataStore {
       throw new Error(`Supabase DB Insert Failed (HTTP ${res.status}): ${errText}`);
     }
 
+    newApplicant.dpdpConsent = true;
+    newApplicant.consentDate = new Date().toISOString();
     this.setCurrentUser(newApplicant);
     await this.syncFromSupabase();
     return newApplicant;
@@ -518,6 +550,64 @@ class DataStore {
     return (this.data.inquiries || []).filter(i => i.studentId === studentId);
   }
 
+  // --- Gallery Methods (100% Server Database Persistent, ZERO LocalStorage) ---
+  getGalleryItems(category = 'all') {
+    const items = this.data.gallery || [];
+    if (!category || category === 'all') return items;
+    return items.filter(item => (item.category || '').toLowerCase() === category.toLowerCase());
+  }
+
+  async addGalleryItem(itemData) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error('Access Denied: Only Administrator can upload images to the Gallery.');
+    }
+
+    const payload = {
+      title: itemData.title,
+      category: itemData.category || 'Achievements',
+      imageUrl: itemData.imageUrl,
+      description: itemData.description || '',
+      uploadedBy: currentUser.username || currentUser.name || 'admin'
+    };
+
+    const res = await fetch('/api/gallery', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Database Gallery Upload Failed (HTTP ${res.status}): ${errText}`);
+    }
+
+    const savedItem = await res.json();
+    await this.syncFromSupabase();
+    return savedItem;
+  }
+
+  async removeGalleryItem(photoId) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error('Access Denied: Only Administrator can remove photos from the Gallery.');
+    }
+
+    const res = await fetch(`/api/gallery?id=${encodeURIComponent(photoId)}`, {
+      method: 'DELETE'
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Database Gallery Removal Failed (HTTP ${res.status}): ${errText}`);
+    }
+
+    await this.syncFromSupabase();
+    return true;
+  }
+
   getSupabaseConfig() {
     return { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY };
   }
@@ -528,3 +618,4 @@ class DataStore {
 }
 
 export const store = new DataStore();
+

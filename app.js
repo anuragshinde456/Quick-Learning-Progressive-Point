@@ -4,7 +4,7 @@
  * Cities & Districts Covered: Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore, Puri & all 30 Districts
  */
 
-import { store } from './store.js?v=20260924_v8';
+import { store } from './store.js?v=20260925_about1';
 
 class AppController {
   constructor() {
@@ -18,13 +18,35 @@ class AppController {
   }
 
   async init() {
+    let initialPath = window.location.pathname;
+    if (window.location.hash) {
+      const rawHash = window.location.hash.replace(/^[#/]+/, '');
+      if (rawHash === 'about' || rawHash === 'about-us') initialPath = '/about-us';
+      else if (rawHash === 'gallery') initialPath = '/gallery';
+      else if (rawHash.startsWith('admin')) initialPath = '/' + rawHash;
+      else if (rawHash.startsWith('student')) initialPath = '/' + rawHash;
+      else if (rawHash.startsWith('teacher')) initialPath = '/' + rawHash;
+      else if (rawHash === 'home') initialPath = '/';
+
+      try {
+        history.replaceState(null, '', initialPath);
+      } catch (_) {}
+    }
+
+    if (!this.popstateListenerAttached) {
+      window.addEventListener('popstate', () => {
+        this.route(window.location.pathname);
+      });
+      this.popstateListenerAttached = true;
+    }
+
     this.renderHeader();
-    this.renderMainView();
+    this.route(initialPath);
 
     if (store.supabase) {
       await store.syncFromSupabase();
       this.renderHeader();
-      this.renderMainView();
+      this.route(window.location.pathname);
     }
 
     if (!this.syncInterval) {
@@ -33,7 +55,10 @@ class AppController {
         if (changed) {
           console.log('⚡ Cross-device live data update synced from Supabase!');
           this.renderHeader();
-          this.renderMainView();
+          const p = window.location.pathname;
+          if (p === '/' || p === '/home' || p === '/gallery' || p.startsWith('/admin') || p.startsWith('/student') || p.startsWith('/teacher')) {
+            this.renderMainView();
+          }
         }
       }, 3000);
     }
@@ -114,6 +139,258 @@ class AppController {
     this.openModal('admin-auth-modal');
   }
 
+  // --- Admin Gallery Upload & Management Methods (100% Server Database Persistent, ZERO LocalStorage) ---
+  openAdminGalleryUploadModal() {
+    const user = store.getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      this.showToast('Access Denied: Only Administrator can upload gallery photos.', 'error');
+      return;
+    }
+
+    const form = document.getElementById('admin-gallery-form');
+    if (form) form.reset();
+
+    this._galleryTempImageBase64 = null;
+    const previewContainer = document.getElementById('gal-preview-container');
+    if (previewContainer) previewContainer.style.display = 'none';
+
+    this.toggleGalleryImageSource('file');
+    this.openModal('admin-gallery-modal');
+  }
+
+  toggleGalleryImageSource(type) {
+    const fileGroup = document.getElementById('gal-file-group');
+    const urlGroup = document.getElementById('gal-url-group');
+    const fileInput = document.getElementById('gal-photo-file');
+    const urlInput = document.getElementById('gal-photo-url');
+    const previewContainer = document.getElementById('gal-preview-container');
+    const previewImg = document.getElementById('gal-preview-img');
+
+    if (type === 'file') {
+      if (fileGroup) fileGroup.style.display = 'block';
+      if (urlGroup) urlGroup.style.display = 'none';
+      if (fileInput) fileInput.required = true;
+      if (urlInput) urlInput.required = false;
+      if (this._galleryTempImageBase64 && previewImg && previewContainer) {
+        previewImg.src = this._galleryTempImageBase64;
+        previewContainer.style.display = 'block';
+      } else if (previewContainer) {
+        previewContainer.style.display = 'none';
+      }
+    } else {
+      if (fileGroup) fileGroup.style.display = 'none';
+      if (urlGroup) urlGroup.style.display = 'block';
+      if (fileInput) fileInput.required = false;
+      if (urlInput) urlInput.required = true;
+      if (urlInput && urlInput.value && previewImg && previewContainer) {
+        previewImg.src = urlInput.value;
+        previewContainer.style.display = 'block';
+      } else if (previewContainer) {
+        previewContainer.style.display = 'none';
+      }
+    }
+  }
+
+  handleGalleryFilePreview(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.showToast('Please select a valid image file (JPG, PNG, WebP).', 'warning');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      this._galleryTempImageBase64 = event.target.result;
+      const previewContainer = document.getElementById('gal-preview-container');
+      const previewImg = document.getElementById('gal-preview-img');
+      if (previewContainer && previewImg) {
+        previewImg.src = this._galleryTempImageBase64;
+        previewContainer.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  handleGalleryUrlPreview(url) {
+    const previewContainer = document.getElementById('gal-preview-container');
+    const previewImg = document.getElementById('gal-preview-img');
+    if (url && url.trim().length > 3) {
+      if (previewImg) previewImg.src = url.trim();
+      if (previewContainer) previewContainer.style.display = 'block';
+    } else {
+      if (previewContainer) previewContainer.style.display = 'none';
+    }
+  }
+
+  async handleAdminGalleryUpload(e) {
+    e.preventDefault();
+    const user = store.getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      this.showToast('Access Denied: Only Administrator can upload gallery photos.', 'error');
+      return;
+    }
+
+    const title = document.getElementById('gal-photo-title')?.value?.trim();
+    const category = document.getElementById('gal-photo-category')?.value;
+    const sourceType = document.getElementById('gal-image-source-type')?.value;
+    const desc = document.getElementById('gal-photo-desc')?.value?.trim();
+    const submitBtn = document.getElementById('gal-submit-btn');
+
+    let imageUrl = '';
+    if (sourceType === 'file') {
+      if (!this._galleryTempImageBase64) {
+        this.showToast('Please select an image file to upload.', 'warning');
+        return;
+      }
+      imageUrl = this._galleryTempImageBase64;
+    } else {
+      imageUrl = document.getElementById('gal-photo-url')?.value?.trim();
+      if (!imageUrl) {
+        this.showToast('Please provide an image URL or local asset path.', 'warning');
+        return;
+      }
+    }
+
+    if (!title || !desc) {
+      this.showToast('Please enter both title and description.', 'warning');
+      return;
+    }
+
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving to Database...';
+    }
+
+    try {
+      await store.addGalleryItem({
+        title,
+        category,
+        imageUrl,
+        description: desc
+      });
+
+      this.closeModal('admin-gallery-modal');
+      this.showToast('Photo successfully published to server database!', 'success');
+
+      if (this.currentView === 'gallery') {
+        this.renderGalleryPage();
+      } else if (this.currentView === 'home' && user.role === 'admin') {
+        this.renderMainView();
+      }
+    } catch (err) {
+      console.error(err);
+      this.showToast(err.message || 'Gallery upload failed.', 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnHtml;
+      }
+    }
+  }
+
+  async deleteGalleryPhoto(photoId, photoTitle) {
+    const user = store.getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      this.showToast('Access Denied: Only Administrator can delete gallery photos.', 'error');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to permanently delete "${photoTitle}" from the server database? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await store.removeGalleryItem(photoId);
+      this.showToast('Photograph permanently removed from database.', 'success');
+
+      if (this.currentView === 'gallery') {
+        this.renderGalleryPage();
+      } else if (this.currentView === 'home' && user.role === 'admin') {
+        this.renderMainView();
+      }
+    } catch (err) {
+      console.error(err);
+      this.showToast(err.message || 'Failed to delete photo.', 'error');
+    }
+  }
+
+  // --- DPDP Act 2023 & Privacy Policy Modal Handlers ---
+  openPrivacyModal(tab = 'dpdp') {
+    this.switchPrivacyTab(tab);
+    this.openModal('privacy-policy-modal');
+  }
+
+  switchPrivacyTab(tab = 'dpdp') {
+    const isDpdp = tab === 'dpdp';
+    const dpdpPane = document.getElementById('privacy-pane-dpdp');
+    const termsPane = document.getElementById('privacy-pane-terms');
+    const dpdpBtn = document.getElementById('privacy-tab-btn-dpdp');
+    const termsBtn = document.getElementById('privacy-tab-btn-terms');
+
+    if (dpdpPane && termsPane) {
+      if (isDpdp) {
+        dpdpPane.style.display = 'block';
+        termsPane.style.display = 'none';
+        if (dpdpBtn) dpdpBtn.classList.add('active');
+        if (termsBtn) termsBtn.classList.remove('active');
+      } else {
+        dpdpPane.style.display = 'none';
+        termsPane.style.display = 'block';
+        if (dpdpBtn) dpdpBtn.classList.remove('active');
+        if (termsBtn) termsBtn.classList.add('active');
+      }
+    }
+  }
+
+  acceptPrivacyAndClose() {
+    const stdConsent = document.getElementById('std-reg-consent');
+    const tchConsent = document.getElementById('tch-reg-consent');
+    const stdModal = document.getElementById('student-auth-modal');
+    const tchModal = document.getElementById('teacher-auth-modal');
+
+    let checkedAny = false;
+    if (stdModal && stdModal.classList.contains('active') && stdConsent) {
+      stdConsent.checked = true;
+      checkedAny = true;
+    }
+    if (tchModal && tchModal.classList.contains('active') && tchConsent) {
+      tchConsent.checked = true;
+      checkedAny = true;
+    }
+
+    this.closeModal('privacy-policy-modal');
+    if (checkedAny) {
+      this.showToast('Privacy Policy & Terms agreed and checked!', 'success');
+    } else {
+      this.showToast('Privacy Policy & Terms acknowledged.', 'info');
+    }
+  }
+
+  toggleInlinePolicy(panelId, btn) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    const isHidden = panel.style.display === 'none' || !panel.style.display;
+    if (isHidden) {
+      panel.style.display = 'block';
+      if (btn) {
+        btn.classList.add('expanded');
+        const textSpan = btn.querySelector('span');
+        if (textSpan) textSpan.textContent = 'Hide Policy & Terms Under It';
+      }
+    } else {
+      panel.style.display = 'none';
+      if (btn) {
+        btn.classList.remove('expanded');
+        const textSpan = btn.querySelector('span');
+        if (textSpan) textSpan.textContent = 'View Policy & Terms Under It';
+      }
+    }
+  }
+
   async handleAdminLogin(e) {
     e.preventDefault();
     const u = document.getElementById('adm-login-user').value;
@@ -126,16 +403,226 @@ class AppController {
       }
       this.closeModal('admin-auth-modal');
       this.showToast('Welcome to Admin Command Center!', 'success');
-      this.init();
+      this.navigateTo('/admin/applicants');
     } catch (err) {
       this.showToast(err.message, 'error');
     }
   }
 
-  // --- Page Navigation Router ---
-  navigateTo(viewName) {
-    this.currentView = viewName;
+  // --- Clean URL Router (HTML5 History API, 100% Free of /#) ---
+  normalizePath(rawPath) {
+    if (!rawPath) return '/';
+    let p = rawPath.replace(/^[#/]+/, '/');
+    if (!p.startsWith('/')) p = '/' + p;
+    if (p.length > 1 && p.endsWith('/')) {
+      p = p.slice(0, -1);
+    }
+    return p;
+  }
+
+  navigateTo(path = '/', e = null) {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
+    const cleanPath = this.normalizePath(path);
+    try {
+      if (window.location.pathname !== cleanPath) {
+        history.pushState(null, '', cleanPath);
+      }
+    } catch (_) {}
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.route(cleanPath);
+  }
+
+  updatePageTitle(path) {
+    const titles = {
+      '/': 'Quick Progressive Career Point - Premier Home Tutoring Across Odisha',
+      '/home': 'Quick Progressive Career Point - Premier Home Tutoring Across Odisha',
+      '/about-us': 'About Us | Quick Progressive Career Point (Odisha)',
+      '/about': 'About Us | Quick Progressive Career Point (Odisha)',
+      '/gallery': 'Photo Gallery & Achievements | Quick Progressive Career Point',
+      '/find-tutors': 'Find Verified Home Tutors Across Odisha | QPCP',
+      '/admin/dashboard': 'Admin Command Center | QPCP Odisha HQ',
+      '/admin/applicants': 'Tutor Applications | Admin Command Center | QPCP',
+      '/admin/teachers': 'Verified Home Faculty | Admin Command Center | QPCP',
+      '/admin/students': 'Student Directory | Admin Command Center | QPCP',
+      '/admin/inquiries': 'Lesson Inquiries & Requests | Admin Command Center | QPCP',
+      '/admin/assign': 'Assign Home Tutor Matrix | Admin Command Center | QPCP',
+      '/admin/gallery': 'Manage Gallery Database | Admin Command Center | QPCP',
+      '/student/dashboard': 'Student Learning Portal | QPCP Odisha',
+      '/student/inquiries': 'My Applications | Student Learning Portal | QPCP',
+      '/student/assigned': 'My Assigned Faculty | Student Learning Portal | QPCP',
+      '/student/tutors': 'Find Verified Home Tutors | Student Portal | QPCP',
+      '/teacher/dashboard': 'Verified Faculty Dashboard | QPCP Odisha',
+      '/teacher/students': 'Available Students | Verified Faculty | QPCP',
+      '/teacher/assigned': 'My Assigned Slots | Verified Faculty | QPCP',
+      '/teacher/status': 'Application Status | Home Tutor Review | QPCP',
+      '/privacy-policy': 'Privacy Policy | Quick Progressive Career Point (Odisha)',
+      '/terms': 'Terms of Service & Limitation of Liability | QPCP Odisha'
+    };
+    document.title = titles[path] || 'Quick Progressive Career Point (Odisha)';
+  }
+
+  updateActiveNavLinks(customPath = null) {
+    const path = customPath || this.normalizePath(window.location.pathname);
+    const desktopLinks = document.querySelectorAll('.nav-links .nav-link');
+    const mobileLinks = document.querySelectorAll('.mobile-nav-links .mobile-nav-link');
+
+    const updateList = (links) => {
+      links.forEach(link => {
+        const linkPath = link.getAttribute('data-path') || link.getAttribute('href');
+        if (linkPath === path || (linkPath === '/' && (path === '/' || path === '/home')) || (linkPath && linkPath !== '/' && linkPath !== '#' && path.startsWith(linkPath))) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    };
+
+    updateList(desktopLinks);
+    updateList(mobileLinks);
+  }
+
+  route(path) {
+    const cleanPath = this.normalizePath(path);
+    const user = store.getCurrentUser();
+    this.updatePageTitle(cleanPath);
+    this.updateActiveNavLinks(cleanPath);
+
+    // 1. Global Public Views
+    if (cleanPath === '/' || cleanPath === '/home') {
+      this.currentView = 'home';
+      this.renderMainView();
+      return;
+    }
+
+    if (cleanPath === '/about-us' || cleanPath === '/about') {
+      this.currentView = 'about';
+      this.renderAboutUsPage();
+      return;
+    }
+
+    if (cleanPath === '/gallery') {
+      this.currentView = 'gallery';
+      this.renderGalleryPage();
+      return;
+    }
+
+    if (cleanPath === '/find-tutors' || cleanPath === '/tutors') {
+      this.currentView = 'home';
+      this.renderMainView();
+      setTimeout(() => {
+        const el = document.getElementById('teachers-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      return;
+    }
+
+    if (cleanPath === '/privacy-policy') {
+      this.openPrivacyModal('dpdp');
+      return;
+    }
+
+    if (cleanPath === '/terms') {
+      this.openPrivacyModal('terms');
+      return;
+    }
+
+    // 2. Auth Modal Routes
+    if (cleanPath === '/student/login') {
+      this.openStudentAuth('login');
+      return;
+    }
+    if (cleanPath === '/student/signup' || cleanPath === '/student/register') {
+      this.openStudentAuth('signup');
+      return;
+    }
+    if (cleanPath === '/teacher/login') {
+      this.openTeacherAuth('login');
+      return;
+    }
+    if (cleanPath === '/teacher/signup' || cleanPath === '/teacher/register') {
+      this.openTeacherAuth('signup');
+      return;
+    }
+    if (cleanPath === '/admin/login' || cleanPath === '/admin/auth') {
+      this.openAdminAuth();
+      return;
+    }
+
+    // 3. Admin Command Center Modules & Submodules
+    if (cleanPath.startsWith('/admin')) {
+      if (!user || user.role !== 'admin') {
+        this.showToast('Administrator privileges required. Please login.', 'warning');
+        this.openAdminAuth();
+        this.currentView = 'home';
+        this.renderMainView();
+        return;
+      }
+      this.currentView = 'admin';
+      const sub = cleanPath.replace('/admin', '').replace(/^\//, '');
+      if (['applicants', 'teachers', 'students', 'inquiries', 'assign', 'gallery'].includes(sub)) {
+        this.adminActiveTab = sub;
+      } else {
+        this.adminActiveTab = 'applicants';
+      }
+      this.renderMainView();
+      return;
+    }
+
+    // 4. Student Portal Modules & Submodules
+    if (cleanPath.startsWith('/student')) {
+      if (!user || user.role !== 'student') {
+        this.showToast('Please login to access the Student Portal.', 'info');
+        this.openStudentAuth('login');
+        this.currentView = 'home';
+        this.renderMainView();
+        return;
+      }
+      this.currentView = 'student';
+      const sub = cleanPath.replace('/student', '').replace(/^\//, '');
+      if (['inquiries', 'assigned', 'tutors'].includes(sub)) {
+        this.studentActiveTab = sub;
+      } else if (sub === 'applications') {
+        this.studentActiveTab = 'inquiries';
+      } else if (sub === 'find-tutors') {
+        this.studentActiveTab = 'tutors';
+      } else {
+        this.studentActiveTab = 'inquiries';
+      }
+      this.renderMainView();
+      return;
+    }
+
+    // 5. Teacher Portal Modules & Submodules
+    if (cleanPath.startsWith('/teacher')) {
+      if (!user || (user.role !== 'verified_teacher' && user.role !== 'teacher_applicant')) {
+        this.showToast('Please login to access the Teacher Portal.', 'info');
+        this.openTeacherAuth('login');
+        this.currentView = 'home';
+        this.renderMainView();
+        return;
+      }
+      if (user.role === 'teacher_applicant') {
+        this.currentView = 'teacher_applicant';
+        this.renderMainView();
+        return;
+      }
+      this.currentView = 'teacher';
+      const sub = cleanPath.replace('/teacher', '').replace(/^\//, '');
+      if (['students', 'assigned'].includes(sub)) {
+        this.teacherActiveTab = sub;
+      } else if (sub === 'slots') {
+        this.teacherActiveTab = 'assigned';
+      } else {
+        this.teacherActiveTab = 'students';
+      }
+      this.renderMainView();
+      return;
+    }
+
+    // Default Fallback
+    this.currentView = 'home';
     this.renderMainView();
   }
 
@@ -171,18 +658,18 @@ class AppController {
 
     if (!user) {
       html = `
-        <button class="btn btn-secondary btn-sm" onclick="app.openStudentAuth('login')">
+        <button class="btn btn-secondary btn-sm" onclick="app.navigateTo('/student/login')">
           <i class="fa-solid fa-right-to-bracket"></i> Student Login
         </button>
-        <button class="btn btn-teacher-portal btn-sm" onclick="app.openTeacherAuth('signup')">
+        <button class="btn btn-teacher-portal btn-sm" onclick="app.navigateTo('/teacher/signup')">
           <i class="fa-solid fa-chalkboard-user"></i> Teacher Portal
         </button>
       `;
       mobileHtml = `
-        <button class="btn btn-primary" onclick="app.openStudentAuth('login'); app.toggleMobileMenu();" style="width: 100%;">
+        <button class="btn btn-primary" onclick="app.navigateTo('/student/login'); app.toggleMobileMenu();" style="width: 100%;">
           <i class="fa-solid fa-right-to-bracket"></i> Student Login
         </button>
-        <button class="btn btn-teacher-portal" onclick="app.openTeacherAuth('signup'); app.toggleMobileMenu();" style="width: 100%;">
+        <button class="btn btn-teacher-portal" onclick="app.navigateTo('/teacher/signup'); app.toggleMobileMenu();" style="width: 100%;">
           <i class="fa-solid fa-chalkboard-user"></i> Teacher Portal
         </button>
       `;
@@ -192,11 +679,14 @@ class AppController {
       let mobileDashboardBtn = '';
 
       if (user.role === 'student') {
-        dashboardBtn = `<button class="btn btn-primary btn-sm" onclick="app.renderMainView()"><i class="fa-solid fa-graduation-cap"></i> Student Portal</button>`;
-        mobileDashboardBtn = `<button class="btn btn-primary" onclick="app.renderMainView(); app.toggleMobileMenu();" style="width: 100%;"><i class="fa-solid fa-graduation-cap"></i> Student Portal</button>`;
-      } else if (user.role === 'admin' || user.role === 'verified_teacher' || user.role === 'teacher_applicant') {
-        dashboardBtn = `<button class="btn btn-primary btn-sm" onclick="app.renderMainView()"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>`;
-        mobileDashboardBtn = `<button class="btn btn-primary" onclick="app.renderMainView(); app.toggleMobileMenu();" style="width: 100%;"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>`;
+        dashboardBtn = `<button class="btn btn-primary btn-sm" onclick="app.navigateTo('/student/dashboard')"><i class="fa-solid fa-graduation-cap"></i> Student Portal</button>`;
+        mobileDashboardBtn = `<button class="btn btn-primary" onclick="app.navigateTo('/student/dashboard'); app.toggleMobileMenu();" style="width: 100%;"><i class="fa-solid fa-graduation-cap"></i> Student Portal</button>`;
+      } else if (user.role === 'admin') {
+        dashboardBtn = `<button class="btn btn-primary btn-sm" onclick="app.navigateTo('/admin/dashboard')"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>`;
+        mobileDashboardBtn = `<button class="btn btn-primary" onclick="app.navigateTo('/admin/dashboard'); app.toggleMobileMenu();" style="width: 100%;"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>`;
+      } else if (user.role === 'verified_teacher' || user.role === 'teacher_applicant') {
+        dashboardBtn = `<button class="btn btn-primary btn-sm" onclick="app.navigateTo('/teacher/dashboard')"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>`;
+        mobileDashboardBtn = `<button class="btn btn-primary" onclick="app.navigateTo('/teacher/dashboard'); app.toggleMobileMenu();" style="width: 100%;"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>`;
       }
 
       const avatarMarkup = user.avatar 
@@ -239,30 +729,66 @@ class AppController {
   handleLogout() {
     store.logout();
     this.showToast('You have been logged out.', 'info');
-    this.init();
+    this.navigateTo('/');
   }
 
   // --- Main View Dispatcher ---
   renderMainView() {
     const user = store.getCurrentUser();
-    const root = document.getElementById('app-root');
+    this.updateActiveNavLinks();
 
-    if (!user) {
-      if (this.currentView === 'about') {
-        this.renderAboutUsPage();
-      } else if (this.currentView === 'gallery') {
-        this.renderGalleryPage();
-      } else {
+    // 1. Global Public Views: About Us & Gallery
+    if (this.currentView === 'about' || this.currentView === 'about-us') {
+      this.renderAboutUsPage();
+      return;
+    }
+    if (this.currentView === 'gallery') {
+      this.renderGalleryPage();
+      return;
+    }
+
+    // 2. Role Dashboards
+    if (this.currentView === 'admin') {
+      if (!user || user.role !== 'admin') {
         this.renderGuestLandingView();
+        return;
       }
+      this.renderAdminDashboard(user);
+      return;
+    }
+
+    if (this.currentView === 'student') {
+      if (!user || user.role !== 'student') {
+        this.renderGuestLandingView();
+        return;
+      }
+      this.renderStudentDashboard(user);
+      return;
+    }
+
+    if (this.currentView === 'teacher') {
+      if (!user || (user.role !== 'verified_teacher' && user.role !== 'admin')) {
+        this.renderGuestLandingView();
+        return;
+      }
+      this.renderVerifiedTeacherDashboard(user);
+      return;
+    }
+
+    if (this.currentView === 'teacher_applicant') {
+      if (!user || (user.role !== 'teacher_applicant' && user.role !== 'admin')) {
+        this.renderGuestLandingView();
+        return;
+      }
+      this.renderTeacherApplicantView(user);
+      return;
+    }
+
+    // 3. Default Home
+    if (!user) {
+      this.renderGuestLandingView();
     } else if (user.role === 'student') {
-      if (this.currentView === 'about') {
-        this.renderAboutUsPage();
-      } else if (this.currentView === 'gallery') {
-        this.renderGalleryPage();
-      } else {
-        this.renderStudentDashboard(user);
-      }
+      this.renderStudentDashboard(user);
     } else if (user.role === 'teacher_applicant') {
       this.renderTeacherApplicantView(user);
     } else if (user.role === 'verified_teacher') {
@@ -273,7 +799,7 @@ class AppController {
   }
 
   showHome() {
-    this.navigateTo('home');
+    this.navigateTo('/');
   }
 
   // --- 1. Guest Landing View ---
@@ -424,7 +950,7 @@ class AppController {
 
   switchStudentTab(tab) {
     this.studentActiveTab = tab;
-    this.renderMainView();
+    this.navigateTo(`/student/${tab}`);
   }
 
   renderStudentTabContent(user, myInquiries, myAssignments, verifiedTeachers) {
@@ -553,73 +1079,368 @@ class AppController {
     }
   }
 
-  // --- 2. Separate About Us Page ---
+  // --- 2. Comprehensive About Us Page ---
   renderAboutUsPage() {
     const root = document.getElementById('app-root');
     root.innerHTML = `
-      <section class="hero" style="padding-top: 2rem; padding-bottom: 3rem;">
-        <div class="container" style="text-align: center; max-width: 820px;">
-          <div class="hero-tag"><i class="fa-solid fa-map-pin"></i> Serving All 30 Districts of Odisha</div>
-          <h1 class="hero-title">About <span class="gradient-text">Quick Progressive Career Point</span></h1>
-          <p class="hero-desc" style="margin: 0 auto 2rem;">
-            Quick Progressive Career Point is Odisha's premier 1-on-1 home tutoring platform, connecting ambitious students with verified expert home tutors across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore & all 30 districts of Odisha.
+      <!-- Hero Section -->
+      <section class="about-hero">
+        <div class="container" style="max-width: 900px; margin: 0 auto;">
+          <div class="about-breadcrumb">
+            <a href="/" onclick="app.navigateTo('/', event)"><i class="fa-solid fa-house"></i> Home</a>
+            <span>/</span>
+            <span>About Us</span>
+          </div>
+
+          <div class="about-badge-cluster">
+            <span class="hero-tag"><i class="fa-solid fa-map-pin"></i> Serving All 30 Districts of Odisha</span>
+            <span class="hero-tag" style="background:#ecfdf5; color:#047857; border-color:#a7f3d0;"><i class="fa-solid fa-shield-halved"></i> 100% In-Person & Video Verified Tutors</span>
+            <span class="hero-tag" style="background:#fdf4ff; color:#9333ea; border-color:#f0abfc;"><i class="fa-solid fa-shield-heart"></i> 100% Student Privacy Assured</span>
+          </div>
+
+          <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 1rem; line-height: 1.2;">
+            Pioneering 1-on-1 Home Education Across <span class="gradient-text">All of Odisha</span>
+          </h1>
+
+          <p class="hero-desc" style="font-size: 1.05rem; line-height: 1.7; color: var(--text-muted); margin: 0 auto 2rem;">
+            <strong>Quick Progressive Career Point (QPCP)</strong> is Odisha's premier dedicated home tutoring network. Founded in Odisha, we bridge the gap between discerning parents and certified, top-tier home tutors across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore, and every district in between.
           </p>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="app.openStudentAuth('signup')">
+              <i class="fa-solid fa-user-plus"></i> Book a Home Tutor
+            </button>
+            <button class="btn btn-teacher-portal" onclick="app.openTeacherAuth('signup')">
+              <i class="fa-solid fa-chalkboard-user"></i> Join as Faculty
+            </button>
+            <a href="https://wa.me/917008221300?text=Hello%20QPCP%2C%20I%20would%20like%20to%20inquire%20about%20home%20tutoring%20services%20in%20Odisha" target="_blank" class="btn btn-whatsapp">
+              <i class="fa-brands fa-whatsapp"></i> Chat with Counselor
+            </a>
+          </div>
+
+          <!-- Impact Metrics -->
+          <div class="about-stats-grid">
+            <div class="about-stat-card">
+              <div class="about-stat-num">500+</div>
+              <div class="about-stat-label">Verified Home Tutors</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">Interviewed & audited</div>
+            </div>
+            <div class="about-stat-card">
+              <div class="about-stat-num">30</div>
+              <div class="about-stat-label">Districts in Odisha</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">Statewide coverage</div>
+            </div>
+            <div class="about-stat-card">
+              <div class="about-stat-num">10,000+</div>
+              <div class="about-stat-label">Tutoring Hours</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">Delivered at student homes</div>
+            </div>
+            <div class="about-stat-card">
+              <div class="about-stat-num">98.4%</div>
+              <div class="about-stat-label">Parent Satisfaction</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">Grade improvement rate</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="section">
+      <!-- The Story & Why QPCP Exists -->
+      <section class="section" style="background: #ffffff; border-bottom: 1px solid var(--glass-border);">
         <div class="container">
-          <div class="grid-2-col" style="margin-bottom: 3rem;">
-            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--glass-shadow);">
-              <div style="width: 54px; height: 54px; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 1.25rem;">
+          <div class="about-story-grid">
+            <div class="about-story-card">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: #fef2f2; color: var(--accent-rose); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                  <h3 style="font-size: 1.3rem; margin: 0; color: var(--text-main);">The Tutoring Problem in Odisha</h3>
+                  <span style="font-size: 0.78rem; color: var(--text-dim);">Why Traditional Channels Failed Parents</span>
+                </div>
+              </div>
+              <p style="color: var(--text-muted); line-height: 1.7; font-size: 0.92rem; margin-bottom: 1rem;">
+                For decades, parents in Bhubaneswar, Cuttack, and across Odisha struggled with informal broker agencies and unverified classifieds when looking for home tutors.
+              </p>
+              <ul style="padding-left: 1.2rem; color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                <li style="margin-bottom: 0.5rem;"><strong>Zero Quality Checks:</strong> Parents had no way to gauge an educator's teaching style, communication, or subject command before inviting them home.</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Safety & Background Concerns:</strong> Tutors were often dispatched without identity or academic credential verification.</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Opaque Middleman Commissions:</strong> Agencies took heavy cuts, leading to tutor dissatisfaction and abrupt dropouts mid-session.</li>
+                <li><strong>Privacy Violations:</strong> Student numbers were frequently sold to commercial telemarketing databases.</li>
+              </ul>
+            </div>
+
+            <div class="about-story-card">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: #ecfdf5; color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                  <i class="fa-solid fa-lightbulb"></i>
+                </div>
+                <div>
+                  <h3 style="font-size: 1.3rem; margin: 0; color: var(--text-main);">The QPCP Innovation</h3>
+                  <span style="font-size: 0.78rem; color: var(--text-dim);">Transparency, Pedagogy & Technology</span>
+                </div>
+              </div>
+              <p style="color: var(--text-muted); line-height: 1.7; font-size: 0.92rem; margin-bottom: 1rem;">
+                Quick Progressive Career Point was founded to create Odisha's most reliable, transparent, and technology-empowered home tutoring network.
+              </p>
+              <ul style="padding-left: 1.2rem; color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                <li style="margin-bottom: 0.5rem;"><strong>Interactive Video Demonstrations:</strong> Watch every tutor explain core concepts in 30-sec to 5-min intro videos before booking.</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Rigorous In-Person Vetting:</strong> Academic degrees, credentials, and pedagogy skills verified by senior educationists.</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Direct WhatsApp Matchmaking:</strong> Seamless connections with zero middleman friction and bilateral fee freedom.</li>
+                <li><strong>Contact Privacy Protection:</strong> Student mobile numbers remain strictly protected and confidential.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Mission, Vision & Core Values Pillars -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            <div class="about-pillar-card">
+              <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
                 <i class="fa-solid fa-bullseye"></i>
               </div>
-              <h2 style="font-size: 1.5rem; margin-bottom: 0.85rem;">Our Mission</h2>
-              <p style="color: var(--text-muted); line-height: 1.7; font-size: 0.95rem;">
-                To provide top quality 1-on-1 home tutoring at students' doorsteps across all major cities & districts in Odisha. We interview every tutor in person and review 30s-5min demo video lectures before publishing them.
+              <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem;">Our Mission</h3>
+              <p style="color: var(--text-muted); line-height: 1.65; font-size: 0.9rem; flex: 1;">
+                To deliver bespoke, personalized 1-on-1 home tutoring directly at students' doorsteps across all 30 districts of Odisha. We adapt pedagogy to each child's learning speed across CBSE, ICSE, and CHSE Odisha boards, fostering academic excellence and lifelong intellectual curiosity.
               </p>
             </div>
 
-            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--glass-shadow);">
-              <div style="width: 54px; height: 54px; border-radius: var(--radius-md); background: var(--accent-emerald-light); color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 1.25rem;">
+            <div class="about-pillar-card">
+              <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: #ecfdf5; color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
                 <i class="fa-solid fa-eye"></i>
               </div>
-              <h2 style="font-size: 1.5rem; margin-bottom: 0.85rem;">Our Vision</h2>
-              <p style="color: var(--text-muted); line-height: 1.7; font-size: 0.95rem;">
-                To become the most trusted home tutoring network in Odisha, where parents & students can evaluate home tutors via recorded video intros while maintaining complete contact privacy.
+              <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem;">Our Vision</h3>
+              <p style="color: var(--text-muted); line-height: 1.65; font-size: 0.9rem; flex: 1;">
+                To establish Odisha's benchmark educational intermediary ecosystem where any student—whether in urban Bhubaneswar or rural Koraput—can access high-caliber educators with absolute safety, complete credential transparency, and proven pedagogical support.
+              </p>
+            </div>
+
+            <div class="about-pillar-card">
+              <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: #fdf4ff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
+                <i class="fa-solid fa-gem"></i>
+              </div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem;">Our Core Values</h3>
+              <p style="color: var(--text-muted); line-height: 1.65; font-size: 0.9rem; flex: 1;">
+                Uncompromising educator vetting, complete student contact privacy and security, transparent bilateral pricing without hidden platform commissions, and dedicated student-centric mentorship.
               </p>
             </div>
           </div>
+        </div>
+      </section>
 
+      <!-- 4-Step Tutor Verification Process -->
+      <section class="section">
+        <div class="container">
           <div class="section-header">
-            <span class="section-subtitle">Statewide Network</span>
-            <h2 class="section-title">Home Tutoring Across Odisha</h2>
+            <span class="section-subtitle">Rigorous Quality Assurance</span>
+            <h2 class="section-title">How QPCP Verifies Every Home Tutor</h2>
+            <p class="section-desc">We reject over 60% of applicants to guarantee only passionate, qualified educators step into your home.</p>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; text-align: center;">
-            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--glass-shadow);">
-              <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-              <h3 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Bhubaneswar Zone</h3>
-              <p style="color: var(--text-muted); font-size: 0.82rem;">Patia, Jaydev Vihar, Acharya Vihar, Infocity & Nayapalli</p>
+          <div class="about-step-grid">
+            <div class="about-step-card">
+              <div class="about-step-badge">1</div>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-file-circle-check" style="color: var(--primary);"></i> Credential Audit</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+                Verification of academic degrees (B.Sc, M.Sc, B.Tech, M.Tech, B.Ed, Ph.D), 10th/12th marksheets, and teaching experience certificates.
+              </p>
             </div>
 
-            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--glass-shadow);">
-              <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-              <h3 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Cuttack Zone</h3>
-              <p style="color: var(--text-muted); font-size: 0.82rem;">CDA Sectors, Cantonment Road, Link Road & Bidanasi</p>
+            <div class="about-step-card">
+              <div class="about-step-badge" style="background: #ecfdf5; color: #047857;">2</div>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-comments" style="color: #047857;"></i> Pedagogy Interview</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+                In-depth technical and pedagogical interview evaluating concept clarity, student handling patience, and syllabus proficiency.
+              </p>
             </div>
 
-            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--glass-shadow);">
-              <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-              <h3 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Rourkela & Sambalpur</h3>
-              <p style="color: var(--text-muted); font-size: 0.82rem;">Civil Township, Chhend, Burla & Sambalpur City</p>
+            <div class="about-step-card">
+              <div class="about-step-badge" style="background: #eff6ff; color: var(--primary);">3</div>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-video" style="color: var(--primary);"></i> Video Demo Review</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+                Every faculty member must submit a recorded 30s-5min concept lecture. We evaluate verbal clarity, board work, and engagement style.
+              </p>
             </div>
 
-            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--glass-shadow);">
-              <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-              <h3 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Southern & Eastern Odisha</h3>
-              <p style="color: var(--text-muted); font-size: 0.82rem;">Berhampur, Balasore, Puri, Jajpur & all 30 Districts</p>
+            <div class="about-step-card">
+              <div class="about-step-badge" style="background: #fdf4ff; color: #9333ea;">4</div>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-star" style="color: #9333ea;"></i> Parent Feedback Loop</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+                Post-session feedback from parents. Tutors maintain an active standing only when they meet our strict 4.5+ star satisfaction threshold.
+              </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Statewide Odisha Coverage Grid -->
+      <section class="section" style="background: #ffffff; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-subtitle">Local Reach Across Odisha</span>
+            <h2 class="section-title">Home Tutoring Network in Major Zones</h2>
+            <p class="section-desc">Our educators travel directly to your doorstep in all major residential localities and towns across Odisha.</p>
+          </div>
+
+          <div class="about-zone-grid">
+            <div class="about-zone-card">
+              <div class="about-zone-icon"><i class="fa-solid fa-building-columns"></i></div>
+              <div class="about-zone-title">Bhubaneswar Capital Zone</div>
+              <p class="about-zone-list">
+                Patia, Jaydev Vihar, Saheed Nagar, Nayapalli, Infocity, Khandagiri, Chandrasekharpur, Old Town, Rasulgarh, VSS Nagar, Sundarpada & Pokhariput.
+              </p>
+            </div>
+
+            <div class="about-zone-card">
+              <div class="about-zone-icon"><i class="fa-solid fa-landmark"></i></div>
+              <div class="about-zone-title">Cuttack Silver City Zone</div>
+              <p class="about-zone-list">
+                CDA Sectors (1-14), Cantonment Road, Bidanasi, Link Road, Madhupatna, Badambadi, Ranihat, Mangalabag & Chauliaganj.
+              </p>
+            </div>
+
+            <div class="about-zone-card">
+              <div class="about-zone-icon"><i class="fa-solid fa-industry"></i></div>
+              <div class="about-zone-title">Western Odisha Zone</div>
+              <p class="about-zone-list">
+                <strong>Rourkela:</strong> Civil Township, Chhend, Koel Nagar, Panposh, Basanti Colony.<br>
+                <strong>Sambalpur:</strong> Burla (VSSUT/VIMSAR), Dhanupali, Ainthapali, Budharaja, Bargarh & Jharsuguda.
+              </p>
+            </div>
+
+            <div class="about-zone-card">
+              <div class="about-zone-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+              <div class="about-zone-title">Southern, Eastern & Coastal Odisha</div>
+              <p class="about-zone-list">
+                <strong>Berhampur:</strong> Gosaninuagaon, Gandhi Nagar, Engineering School Rd.<br>
+                <strong>Coastal & Eastern:</strong> Balasore, Bhadrak, Puri, Jajpur, Angul, Dhenkanal, Koraput & all 30 Districts.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comparison: QPCP vs Traditional Coaching -->
+      <section class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-subtitle">The Clear Advantage</span>
+            <h2 class="section-title">QPCP 1-on-1 Home Tutoring vs Traditional Coaching</h2>
+            <p class="section-desc">Why personalized at-home learning consistently outperforms crowded commercial batches.</p>
+          </div>
+
+          <div class="about-comparison-table-wrap">
+            <table class="about-comparison-table">
+              <thead>
+                <tr>
+                  <th style="width: 25%;">Feature</th>
+                  <th class="highlight" style="width: 40%;"><i class="fa-solid fa-circle-check" style="color: var(--primary);"></i> QPCP 1-on-1 Home Tutoring</th>
+                  <th style="width: 35%;">Traditional Coaching / Local Tuition</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Attention & Focus</strong></td>
+                  <td class="highlight"><span style="color: #047857; font-weight: 700;">100% Dedicated Attention:</span> Tutor customizes explanations to your child's pace.</td>
+                  <td>1 Teacher for 40-70 students; doubts often ignored or unasked.</td>
+                </tr>
+                <tr>
+                  <td><strong>Educator Transparency</strong></td>
+                  <td class="highlight"><span style="color: #047857; font-weight: 700;">Watch Demo Videos:</span> View recorded 30s-5min lectures before hiring.</td>
+                  <td>Blind enrollment without knowing who will teach.</td>
+                </tr>
+                <tr>
+                  <td><strong>Safety & Commute</strong></td>
+                  <td class="highlight"><span style="color: #047857; font-weight: 700;">Zero Commute Risk:</span> Class happens safely in your living room with parents present.</td>
+                  <td>Risky daily travel, traffic fatigue, and wasted travel hours.</td>
+                </tr>
+                <tr>
+                  <td><strong>Privacy & Legal Security</strong></td>
+                  <td class="highlight"><span style="color: #047857; font-weight: 700;">Complete Privacy Shield:</span> Student phone/email kept strictly confidential with Admin.</td>
+                  <td>Student contacts sold to telemarketers & unsolicited spammers.</td>
+                </tr>
+                <tr>
+                  <td><strong>Curriculum Customization</strong></td>
+                  <td class="highlight"><span style="color: #047857; font-weight: 700;">Odisha & National Boards:</span> Precise alignment with CBSE, ICSE, and CHSE Odisha.</td>
+                  <td>Rigid, one-size-fits-all lesson pace with zero personal remediation.</td>
+                </tr>
+                <tr>
+                  <td><strong>Pricing Structure</strong></td>
+                  <td class="highlight"><span style="color: #047857; font-weight: 700;">Direct & Transparent:</span> Bilateral hourly/monthly terms negotiated directly with tutor.</td>
+                  <td>Heavy non-refundable quarterly/annual upfront fees.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Message from the Founders -->
+      <section class="section" style="background: #ffffff; border-top: 1px solid var(--glass-border);">
+        <div class="container" style="max-width: 860px;">
+          <div class="about-quote-box">
+            <div style="font-size: 1.8rem; color: #047857; margin-bottom: 0.5rem;"><i class="fa-solid fa-quote-left"></i></div>
+            <p class="about-quote-text">
+              "Every student in Odisha has the potential to excel in board examinations, Olympiads, and competitive entrance tests like JEE and NEET. When education happens 1-on-1 at home, fear of asking questions evaporates. Concepts stick because teaching is tailored to the child's exact mindset. At Quick Progressive Career Point, our purpose is simple: make premium home tutoring safe, accessible, and transparent across every corner of Odisha."
+            </p>
+            <div class="about-quote-author">
+              <i class="fa-solid fa-signature" style="font-size: 1.2rem;"></i>
+              <span>Academic Leadership Desk, Quick Progressive Career Point, Odisha</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ Section -->
+      <section class="section">
+        <div class="container" style="max-width: 860px;">
+          <div class="section-header">
+            <span class="section-subtitle">Got Questions?</span>
+            <h2 class="section-title">Frequently Asked Questions</h2>
+          </div>
+
+          <div class="about-faq-card">
+            <div class="about-faq-q"><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How quickly can I get a tutor assigned in my locality?</div>
+            <p class="about-faq-a">Most student requests in Bhubaneswar, Cuttack, Rourkela, Sambalpur, and Berhampur are matched within 24 to 48 hours. Once you apply via WhatsApp or register an account, our team coordinates a verified tutor matching your subject and board requirements.</p>
+          </div>
+
+          <div class="about-faq-card">
+            <div class="about-faq-q"><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> Can parents watch teacher video demonstrations before deciding?</div>
+            <p class="about-faq-a">Yes! Every verified teacher listed in the QPCP directory includes an interactive 30-sec to 5-minute video lecture demonstration. You can evaluate their accent, teaching methodology, board work, and subject clarity prior to scheduling a demo class.</p>
+          </div>
+
+          <div class="about-faq-card">
+            <div class="about-faq-q"><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> Which classes and academic boards are supported?</div>
+            <p class="about-faq-a">We cater to Class 1 through Class 12 across CBSE, ICSE, and CHSE Odisha state board curricula, as well as competitive entrance foundations (JEE Mains/Advanced, NEET-UG, NTSE, KVPY, and Olympiads).</p>
+          </div>
+
+          <div class="about-faq-card">
+            <div class="about-faq-q"><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How are tuition fees paid and negotiated?</div>
+            <p class="about-faq-a">As an educational intermediary under Section 79 of the Information Technology Act 2000, QPCP provides transparent listed hourly rate estimates. Exact lesson fees, monthly schedules, and payment terms are negotiated directly between parents and teachers without hidden platform deductions.</p>
+          </div>
+
+          <div class="about-faq-card">
+            <div class="about-faq-q"><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How does QPCP protect student contact privacy?</div>
+            <p class="about-faq-a">Student phone numbers and email addresses are never published publicly. Only verified assigned tutors and admin can communicate directly regarding scheduled home sessions.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Call To Action Banner -->
+      <section class="container" style="margin-bottom: 4rem;">
+        <div class="about-cta-banner">
+          <h2 style="font-size: 2.2rem; margin-bottom: 0.75rem; position: relative;">Ready to Experience Odisha's Best Home Tutoring?</h2>
+          <p style="max-width: 680px; margin: 0 auto 2rem; color: #cbd5e1; font-size: 1rem; position: relative; line-height: 1.6;">
+            Connect with verified subject experts across all 30 districts of Odisha. Watch intro videos, schedule personalized home demo classes, and boost academic scores with confidence.
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative;">
+            <button class="btn btn-primary" onclick="app.navigateTo('/find-tutors', event)" style="background: #ffffff; color: var(--primary); font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
+              <i class="fa-solid fa-magnifying-glass"></i> Browse All Tutors
+            </button>
+            <button class="btn btn-teacher-portal" onclick="app.openTeacherAuth('signup')">
+              <i class="fa-solid fa-chalkboard-user"></i> Apply as a Teacher
+            </button>
+            <a href="https://wa.me/917008221300?text=Hello%20QPCP%2C%20I%20am%20looking%20for%20a%20home%20tutor%20in%20Odisha" target="_blank" class="btn btn-whatsapp">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp Support (+91 70082 21300)
+            </a>
           </div>
         </div>
       </section>
@@ -627,80 +1448,115 @@ class AppController {
   }
 
   // --- 3. Separate Gallery Page ---
+  // --- 3. Separate Gallery Page (Pure Server Database, ZERO LocalStorage) ---
   renderGalleryPage() {
     const root = document.getElementById('app-root');
+    const user = store.getCurrentUser();
+    const isAdmin = user && user.role === 'admin';
 
-    const galleryItems = [
-      {
-        id: 'g1',
-        title: 'Home Tutoring Session in Odisha',
-        category: 'Classrooms',
-        img: 'assets/gallery_classroom.jpg',
-        desc: '1-on-1 personalized home tutoring session at student residence in Odisha.'
-      },
-      {
-        id: 'g2',
-        title: 'Odisha Faculty Pedagogy Workshop',
-        category: 'Workshops',
-        img: 'assets/gallery_workshop.jpg',
-        desc: 'Our Odisha home faculty discussing progressive coaching methods.'
-      },
-      {
-        id: 'g3',
-        title: 'Odisha Board & Entrance Toppers Felicitation',
-        category: 'Celebrations',
-        img: 'assets/gallery_achievement.jpg',
-        desc: 'Honoring top CHSE Odisha, CBSE & JEE/NEET rankers across Odisha.'
-      },
-      {
-        id: 'g4',
-        title: 'Home Practical Science Experiment Kit',
-        category: 'Labs',
-        img: 'assets/gallery_lab.jpg',
-        desc: 'Hands-on practical physics and chemistry experiment kit sessions.'
-      }
+    const allDbItems = store.getGalleryItems('all');
+    let filtered = store.getGalleryItems(this.galleryFilter);
+
+    // Categories available for filtering
+    const categories = [
+      { id: 'all', label: 'All Photos' },
+      { id: 'Achievements', label: 'Achievements' },
+      { id: 'Classrooms', label: 'Home Sessions' },
+      { id: 'Workshops', label: 'Faculty Meetings' },
+      { id: 'Celebrations', label: 'Celebrations' },
+      { id: 'Labs', label: 'Practical Kits' }
     ];
 
-    let filtered = galleryItems;
-    if (this.galleryFilter !== 'all') {
-      filtered = galleryItems.filter(item => item.category === this.galleryFilter);
-    }
-
     root.innerHTML = `
-      <section class="hero" style="padding-top: 2rem; padding-bottom: 3rem;">
-        <div class="container" style="text-align: center; max-width: 750px;">
-          <div class="hero-tag"><i class="fa-solid fa-images"></i> QPCP Odisha Tutoring Highlights</div>
+      <section class="hero" style="padding-top: 2rem; padding-bottom: 2.5rem;">
+        <div class="container" style="text-align: center; max-width: 780px;">
+          <div class="hero-tag"><i class="fa-solid fa-images"></i> QPCP Odisha Gallery & Achievements</div>
           <h1 class="hero-title">Explore Our <span class="gradient-text">Home Tutoring Gallery</span></h1>
           <p class="hero-desc" style="margin: 0 auto 1.5rem;">
-            Glimpses of 1-on-1 home tutoring sessions, tutor workshops, and board topper felicitations across Odisha.
+            Real moments from 1-on-1 home tutoring sessions, tutor training sessions, and board topper felicitations across Bhubaneswar, Cuttack, and all over Odisha.
           </p>
+          <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.4rem 0.9rem; border-radius: 9999px; font-size: 0.78rem; color: var(--accent-emerald);">
+            <i class="fa-solid fa-database"></i> <span>Live Server Database • ${allDbItems.length} Photo${allDbItems.length === 1 ? '' : 's'} Published</span>
+          </div>
         </div>
       </section>
 
-      <section class="section">
+      <section class="section" style="padding-top: 1rem;">
         <div class="container">
-          <div class="filter-chips" style="justify-content: center; margin-bottom: 2.5rem;">
-            <button class="chip ${this.galleryFilter === 'all' ? 'active' : ''}" onclick="app.filterGallery('all')">All Photos</button>
-            <button class="chip ${this.galleryFilter === 'Classrooms' ? 'active' : ''}" onclick="app.filterGallery('Classrooms')">Home Sessions</button>
-            <button class="chip ${this.galleryFilter === 'Workshops' ? 'active' : ''}" onclick="app.filterGallery('Workshops')">Faculty Meetings</button>
-            <button class="chip ${this.galleryFilter === 'Labs' ? 'active' : ''}" onclick="app.filterGallery('Labs')">Practical Kits</button>
-            <button class="chip ${this.galleryFilter === 'Celebrations' ? 'active' : ''}" onclick="app.filterGallery('Celebrations')">Topper Celebrations</button>
-          </div>
-
-          <div class="responsive-card-grid">
-            ${filtered.map(item => `
-              <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--glass-shadow); transition: var(--transition-normal); cursor: pointer;" onclick="app.openLightbox('${item.img}', '${item.title} - ${item.desc}')">
-                <div style="position: relative; height: 220px; overflow: hidden;">
-                  <img src="${item.img}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
-                  <span class="role-badge student" style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.9); backdrop-filter: blur(4px);">${item.category}</span>
+          ${isAdmin ? `
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; color: #fff; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);">
+              <div style="display: flex; align-items: center; gap: 0.9rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+                  <i class="fa-solid fa-user-shield"></i>
                 </div>
-                <div style="padding: 1.25rem;">
-                  <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem;">${item.title}</h3>
-                  <p style="color: var(--text-muted); font-size: 0.85rem;">${item.desc}</p>
+                <div>
+                  <div style="font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem;">
+                    Admin Gallery Command
+                    <span style="font-size: 0.7rem; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 999px; font-weight: 600;">Authorized</span>
+                  </div>
+                  <div style="font-size: 0.8rem; color: #94a3b8;">
+                    Only administrators can upload and remove photos. Stored in server database (Zero LocalStorage).
+                  </div>
                 </div>
               </div>
+              <button class="btn btn-primary" onclick="app.openAdminGalleryUploadModal()" style="font-weight: 600; padding: 0.65rem 1.3rem;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Photo
+              </button>
+            </div>
+          ` : ''}
+
+          <div class="filter-chips" style="justify-content: center; margin-bottom: 2.25rem;">
+            ${categories.map(c => `
+              <button class="chip ${this.galleryFilter.toLowerCase() === c.id.toLowerCase() ? 'active' : ''}" onclick="app.filterGallery('${c.id}')">
+                ${c.label}
+              </button>
             `).join('')}
           </div>
+
+          ${filtered.length === 0 ? `
+            <div style="text-align: center; padding: 4rem 1.5rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); max-width: 600px; margin: 0 auto;">
+              <div style="font-size: 3rem; color: var(--text-dim); margin-bottom: 1rem;"><i class="fa-solid fa-images"></i></div>
+              <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">No Photos Found</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">No photographs in the "${this.galleryFilter}" category yet.</p>
+              ${isAdmin ? `
+                <button class="btn btn-primary" onclick="app.openAdminGalleryUploadModal()">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Upload First Photo in this Category
+                </button>
+              ` : `
+                <button class="btn btn-secondary" onclick="app.filterGallery('all')">View All Photos</button>
+              `}
+            </div>
+          ` : `
+            <div class="responsive-card-grid">
+              ${filtered.map(item => `
+                <div class="gallery-card" style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--glass-shadow); transition: var(--transition-normal); display: flex; flex-direction: column;">
+                  <div style="position: relative; height: 230px; overflow: hidden; cursor: pointer; background: #0f172a;" onclick="app.openLightbox('${item.imageUrl}', '${(item.title || '').replace(/'/g, "\\'")} - ${(item.description || '').replace(/'/g, "\\'")}')">
+                    <img src="${item.imageUrl}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='assets/gallery_achievement.jpg'">
+                    <span class="role-badge student" style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); font-size: 0.72rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">${item.category}</span>
+                    <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.65); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; backdrop-filter: blur(4px);">
+                      <i class="fa-solid fa-expand"></i>
+                    </div>
+                  </div>
+                  <div style="padding: 1.25rem; display: flex; flex-direction: column; flex-grow: 1;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 0.45rem; line-height: 1.4;">${item.title}</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; flex-grow: 1; margin-bottom: 1rem;">${item.description}</p>
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 0.75rem; margin-top: auto;">
+                      <span style="font-size: 0.75rem; color: var(--text-dim);"><i class="fa-regular fa-clock"></i> ${new Date(item.createdAt || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      ${isAdmin ? `
+                        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); app.deleteGalleryPhoto('${item.id}', '${(item.title || '').replace(/'/g, "\\'")}')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
+                          <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                      ` : `
+                        <button class="btn btn-secondary btn-sm" onclick="app.openLightbox('${item.imageUrl}', '${(item.title || '').replace(/'/g, "\\'")} - ${(item.description || '').replace(/'/g, "\\'")}')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
+                          <i class="fa-solid fa-eye"></i> View Full
+                        </button>
+                      `}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
         </div>
       </section>
     `;
@@ -925,7 +1781,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   renderVerifiedTeacherDashboard(user) {
     if (!user || (user.role !== 'verified_teacher' && user.role !== 'admin')) {
       this.showToast('Access denied: Verified Faculty privileges required.', 'error');
-      this.navigateTo('home');
+      this.navigateTo('/');
       return;
     }
 
@@ -979,14 +1835,8 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   }
 
   switchTeacherTab(tab) {
-    const user = store.getCurrentUser();
-    if (!user || (user.role !== 'verified_teacher' && user.role !== 'admin')) {
-      this.showToast('Access denied: Verified Faculty privileges required.', 'error');
-      this.navigateTo('home');
-      return;
-    }
     this.teacherActiveTab = tab;
-    this.renderMainView();
+    this.navigateTo(`/teacher/${tab}`);
   }
 
   renderTeacherTabContent(user, studentsPrivacy, myAssignments) {
@@ -1072,7 +1922,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   renderAdminDashboard(user) {
     if (!user || user.role !== 'admin') {
       this.showToast('Access denied: Administrator privileges required.', 'error');
-      this.navigateTo('home');
+      this.navigateTo('/');
       return;
     }
 
@@ -1121,6 +1971,11 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
                   <i class="fa-solid fa-link"></i> Assign Home Tutor
                 </button>
               </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn ${this.adminActiveTab === 'gallery' ? 'active' : ''}" onclick="app.switchAdminTab('gallery')">
+                  <i class="fa-solid fa-images"></i> Manage Gallery (${(store.data.gallery || []).length})
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -1133,14 +1988,8 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   }
 
   switchAdminTab(tab) {
-    const user = store.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      this.showToast('Access denied: Administrator privileges required.', 'error');
-      this.navigateTo('home');
-      return;
-    }
     this.adminActiveTab = tab;
-    this.renderMainView();
+    this.navigateTo(`/admin/${tab}`);
   }
 
   renderAdminTabContent(applicants, verifiedTeachers, students, inquiries, teacherRequests) {
@@ -1379,6 +2228,63 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
           </form>
         </div>
       `;
+    } else if (this.adminActiveTab === 'gallery') {
+      const galleryItems = store.getGalleryItems('all');
+      container.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 style="font-size: 1.35rem; margin-bottom: 0.25rem;">Server Database Gallery Management</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Upload and manage photographs stored permanently in the server database (Zero LocalStorage).</p>
+          </div>
+          <button class="btn btn-primary" onclick="app.openAdminGalleryUploadModal()">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Photo
+          </button>
+        </div>
+
+        ${galleryItems.length === 0 ? `
+          <div style="text-align: center; padding: 3rem 1.5rem; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);">
+            <i class="fa-solid fa-images" style="font-size: 2.5rem; color: var(--text-dim); margin-bottom: 0.75rem;"></i>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">No Photos in Database</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">Upload the first photograph to showcase across Odisha.</p>
+            <button class="btn btn-primary" onclick="app.openAdminGalleryUploadModal()"><i class="fa-solid fa-plus"></i> Upload Photo</button>
+          </div>
+        ` : `
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Preview</th>
+                  <th>Title & Description</th>
+                  <th>Category</th>
+                  <th>Published Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${galleryItems.map(item => `
+                  <tr>
+                    <td style="width: 80px;">
+                      <img src="${item.imageUrl}" style="width: 70px; height: 50px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); cursor: pointer;" onclick="app.openLightbox('${item.imageUrl}', '${(item.title || '').replace(/'/g, "\\'")}')">
+                    </td>
+                    <td>
+                      <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">${item.title}</div>
+                      <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.4; max-width: 380px;">${item.description}</div>
+                    </td>
+                    <td><span class="role-badge student">${item.category}</span></td>
+                    <td style="font-size: 0.8rem; color: var(--text-dim);">${new Date(item.createdAt || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                    <td>
+                      <div style="display: flex; gap: 0.4rem;">
+                        <button class="btn btn-secondary btn-sm" onclick="app.openLightbox('${item.imageUrl}', '${(item.title || '').replace(/'/g, "\\'")}')" title="Preview"><i class="fa-solid fa-eye"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="app.deleteGalleryPhoto('${item.id}', '${(item.title || '').replace(/'/g, "\\'")}')" title="Delete Photo"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      `;
     }
   }
 
@@ -1543,7 +2449,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       await store.login(u, p, 'student');
       this.closeModal('student-auth-modal');
       this.showToast('Student logged in successfully!', 'success');
-      this.init();
+      this.navigateTo('/student/dashboard');
     } catch (err) {
       this.showToast(err.message, 'error');
     }
@@ -1551,6 +2457,16 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
   async handleStudentSignup(e) {
     e.preventDefault();
+
+    // Terms and Privacy Policy Agreement Validation
+    const consent = document.getElementById('std-reg-consent');
+    if (!consent || !consent.checked) {
+      this.showToast('Please check the box agreeing to the Terms of Service and Privacy Policy to complete registration.', 'error');
+      consent?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      consent?.focus();
+      return;
+    }
+
     const username = document.getElementById('std-reg-username').value;
     const phone = document.getElementById('std-reg-phone').value;
     const pass = document.getElementById('std-reg-pass').value;
@@ -1584,7 +2500,9 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       password: pass,
       grade: document.getElementById('std-reg-grade').value,
       location: document.getElementById('std-reg-location').value,
-      avatar: base64Avatar || defaultAvatar
+      avatar: base64Avatar || defaultAvatar,
+      privacyConsent: true,
+      dpdpConsent: true
     };
 
     try {
@@ -1606,7 +2524,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       await store.login(u, p, 'teacher');
       this.closeModal('teacher-auth-modal');
       this.showToast('Teacher logged in!', 'success');
-      this.init();
+      this.navigateTo('/teacher/dashboard');
     } catch (err) {
       this.showToast(err.message, 'error');
     }
@@ -1614,6 +2532,16 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
   async handleTeacherSignup(e) {
     e.preventDefault();
+
+    // Terms and Privacy Policy Agreement Validation
+    const consent = document.getElementById('tch-reg-consent');
+    if (!consent || !consent.checked) {
+      this.showToast('Please check the box agreeing to the Terms of Service and Privacy Policy to submit your application.', 'error');
+      consent?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      consent?.focus();
+      return;
+    }
+
     const username = document.getElementById('tch-reg-username').value;
     const phone = document.getElementById('tch-reg-phone').value;
     const pass = document.getElementById('tch-reg-pass').value;
@@ -1652,7 +2580,9 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       bio: document.getElementById('tch-reg-bio').value,
       cvUrl: document.getElementById('tch-reg-cv-base64') ? document.getElementById('tch-reg-cv-base64').value : '',
       password: pass,
-      avatar: base64Avatar || defaultAvatar
+      avatar: base64Avatar || defaultAvatar,
+      privacyConsent: true,
+      dpdpConsent: true
     };
 
     try {

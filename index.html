@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -21,14 +22,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260925_cleanurl1">
 </head>
 <body>
 
   <!-- Header Navigation -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="#" class="brand-logo" onclick="app.showHome()">
+      <a href="/" class="brand-logo" onclick="app.navigateTo('/', event)">
         <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
         <div class="brand-title">
           Quick Progressive <span>Career Point</span>
@@ -36,9 +37,9 @@
       </a>
 
       <ul class="nav-links desktop-only">
-        <li><a href="#" class="nav-link" onclick="app.navigateTo('home')">Home</a></li>
-        <li><a href="#" class="nav-link" onclick="app.navigateTo('about')">About Us</a></li>
-        <li><a href="#" class="nav-link" onclick="app.navigateTo('gallery')">Gallery</a></li>
+        <li><a href="/" class="nav-link active" data-path="/" onclick="app.navigateTo('/', event)">Home</a></li>
+        <li><a href="/about-us" class="nav-link" data-path="/about-us" onclick="app.navigateTo('/about-us', event)">About Us</a></li>
+        <li><a href="/gallery" class="nav-link" data-path="/gallery" onclick="app.navigateTo('/gallery', event)">Gallery</a></li>
       </ul>
 
       <div class="auth-buttons desktop-only" id="nav-auth-container">
@@ -53,9 +54,9 @@
     <!-- Mobile Navigation Drawer -->
     <div class="mobile-drawer" id="mobile-drawer">
       <ul class="mobile-nav-links">
-        <li><a href="#" class="mobile-nav-link" onclick="app.navigateTo('home'); app.toggleMobileMenu();"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
-        <li><a href="#" class="mobile-nav-link" onclick="app.navigateTo('about'); app.toggleMobileMenu();"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
-        <li><a href="#" class="mobile-nav-link" onclick="app.navigateTo('gallery'); app.toggleMobileMenu();"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+        <li><a href="/" class="mobile-nav-link" data-path="/" onclick="app.navigateTo('/', event); app.toggleMobileMenu();"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="/about-us" class="mobile-nav-link" data-path="/about-us" onclick="app.navigateTo('/about-us', event); app.toggleMobileMenu();"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="/gallery" class="mobile-nav-link" data-path="/gallery" onclick="app.navigateTo('/gallery', event); app.toggleMobileMenu();"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
       </ul>
       <div class="mobile-auth-container" id="mobile-auth-container">
         <!-- Filled dynamically by app.js -->
@@ -191,7 +192,7 @@
   <footer class="footer">
     <div class="container footer-grid">
       <div class="footer-brand">
-        <a href="#" class="brand-logo">
+        <a href="/" class="brand-logo" onclick="app.navigateTo('/', event)">
           <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
           <div class="brand-title">Quick Progressive <span>Career Point</span></div>
         </a>
@@ -201,36 +202,42 @@
       <div class="footer-col">
         <h4>Quick Links</h4>
         <ul class="footer-links">
-          <li><a href="#" onclick="app.navigateTo('home')">Home</a></li>
-          <li><a href="#" onclick="app.navigateTo('about')">About Us</a></li>
-          <li><a href="#" onclick="app.navigateTo('gallery')">Gallery</a></li>
-          <li><a href="#" onclick="app.openStudentAuth('login')">Student Login</a></li>
-          <li><a href="#" onclick="app.openTeacherAuth('login')">Teacher Portal</a></li>
+          <li><a href="/" onclick="app.navigateTo('/', event)">Home</a></li>
+          <li><a href="/about-us" onclick="app.navigateTo('/about-us', event)">About Us</a></li>
+          <li><a href="/gallery" onclick="app.navigateTo('/gallery', event)">Gallery &amp; Achievements</a></li>
+          <li><a href="/privacy-policy" onclick="app.navigateTo('/privacy-policy', event)"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Privacy Policy</a></li>
+          <li><a href="/terms" onclick="app.navigateTo('/terms', event)"><i class="fa-solid fa-scale-balanced" style="color: var(--primary);"></i> Terms &amp; Limitation</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h4>Portals & Login</h4>
         <ul class="footer-links">
-          <li><a href="#" onclick="app.openStudentAuth('login')"><i class="fa-solid fa-graduation-cap"></i> Student Portal</a></li>
-          <li><a href="#" onclick="app.openTeacherAuth('login')"><i class="fa-solid fa-chalkboard-user"></i> Verified Faculty</a></li>
-          <li><a href="#" onclick="app.openTeacherAuth('signup')"><i class="fa-solid fa-file-signature"></i> Teacher Application</a></li>
-          <li><a href="#" onclick="app.openAdminAuth()"><i class="fa-solid fa-user-shield"></i> Admin Command Center</a></li>
+          <li><a href="/student/login" onclick="app.navigateTo('/student/login', event)"><i class="fa-solid fa-graduation-cap"></i> Student Portal</a></li>
+          <li><a href="/teacher/login" onclick="app.navigateTo('/teacher/login', event)"><i class="fa-solid fa-chalkboard-user"></i> Verified Faculty</a></li>
+          <li><a href="/teacher/signup" onclick="app.navigateTo('/teacher/signup', event)"><i class="fa-solid fa-file-signature"></i> Teacher Application</a></li>
+          <li><a href="/admin/login" onclick="app.navigateTo('/admin/login', event)"><i class="fa-solid fa-user-shield"></i> Admin Command Center</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <h4>Support & WhatsApp</h4>
+        <h4>Support & Grievance</h4>
         <ul class="footer-links">
           <li><a href="https://wa.me/917008221300" target="_blank"><i class="fa-brands fa-whatsapp"></i> +91 70082 21300</a></li>
           <li><a href="mailto:support@quickprogressive.edu.in"><i class="fa-solid fa-envelope"></i> support@quickprogressive.edu.in</a></li>
+          <li><a href="/privacy-policy" onclick="app.navigateTo('/privacy-policy', event)"><i class="fa-solid fa-user-lock"></i> Grievance Officer</a></li>
         </ul>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <div class="container">
-        &copy; 2026 Quick Progressive Career Point (Odisha). All rights reserved.
+      <div class="container footer-bottom-flex">
+        <div>&copy; 2026 Quick Progressive Career Point (Odisha). All rights reserved.</div>
+        <div class="footer-legal-links">
+          <a href="/privacy-policy" onclick="app.navigateTo('/privacy-policy', event)"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a>
+          <span class="divider">•</span>
+          <a href="/terms" onclick="app.navigateTo('/terms', event)"><i class="fa-solid fa-scale-balanced"></i> Terms &amp; Limitation of Liability</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -332,7 +339,19 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+        <!-- Terms and Privacy Policy Agreement Checkbox -->
+        <div class="form-group simple-terms-group">
+          <label class="simple-terms-label" for="std-reg-consent">
+            <input type="checkbox" id="std-reg-consent" required>
+            <span>
+              By selecting "Complete Registration", you confirm that you have read and agree to Quick Progressive Career Point's 
+              <a href="/terms" onclick="app.openPrivacyModal('terms'); return false;">Terms of Service</a> and 
+              <a href="/privacy-policy" onclick="app.openPrivacyModal('dpdp'); return false;">Privacy Policy</a>.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.75rem;">
           <i class="fa-solid fa-user-plus"></i> Complete Registration
         </button>
       </form>
@@ -469,7 +488,19 @@
           </ul>
         </div>
 
-        <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 1rem;">
+        <!-- Terms and Privacy Policy Agreement Checkbox -->
+        <div class="form-group simple-terms-group">
+          <label class="simple-terms-label" for="tch-reg-consent">
+            <input type="checkbox" id="tch-reg-consent" required>
+            <span>
+              By selecting "Submit Teacher Application", you confirm that you have read and agree to Quick Progressive Career Point's 
+              <a href="/terms" onclick="app.openPrivacyModal('terms'); return false;">Terms of Service</a> and 
+              <a href="/privacy-policy" onclick="app.openPrivacyModal('dpdp'); return false;">Privacy Policy</a>.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 0.75rem;">
           <i class="fa-solid fa-paper-plane"></i> Submit Teacher Application
         </button>
       </form>
@@ -593,11 +624,271 @@
     </div>
   </div>
 
+  <!-- 8. Comprehensive DPDP Act 2023 Privacy Policy & Terms Modal -->
+  <div class="modal-overlay" id="privacy-policy-modal">
+    <div class="modal-card lg" style="max-width: 860px;">
+      <button class="modal-close" onclick="app.closeModal('privacy-policy-modal')"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.85rem;">
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1px solid var(--primary-border); flex-shrink: 0;">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h2 class="modal-title" style="margin-bottom: 0.15rem; font-size: 1.35rem;">Privacy Policy & Terms of Service</h2>
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span class="dpdp-badge"><i class="fa-solid fa-shield-halved"></i> Official Privacy Policy &amp; Terms</span>
+            <span style="font-size: 0.74rem; color: var(--text-dim);">Quick Progressive Career Point • Odisha, India</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="tab-switcher" style="margin-bottom: 1.1rem;">
+        <button class="tab-btn active" id="privacy-tab-btn-dpdp" onclick="app.switchPrivacyTab('dpdp')">
+          <i class="fa-solid fa-user-shield"></i> Privacy Policy
+        </button>
+        <button class="tab-btn" id="privacy-tab-btn-terms" onclick="app.switchPrivacyTab('terms')">
+          <i class="fa-solid fa-scale-balanced"></i> Terms of Service &amp; Limitation
+        </button>
+      </div>
+
+      <!-- Scrollable Policy Container -->
+      <div class="policy-doc-container" style="max-height: 58vh; overflow-y: auto; padding-right: 0.5rem;">
+        
+        <!-- PANE 1: DPDP ACT 2023 STATUTORY NOTICE & PRIVACY POLICY -->
+        <div id="privacy-pane-dpdp" style="display: block;">
+          
+          <div class="policy-alert-box success">
+            <i class="fa-solid fa-shield-check" style="font-size: 1.1rem; vertical-align: middle; margin-right: 0.35rem;"></i>
+            <strong>Digital Personal Data Protection Act, 2023 Notice (Section 5):</strong> This document constitutes statutory notice issued by Quick Progressive Career Point ("QPCP", "Data Fiduciary") to all registered students, parents, guardians, and tutors ("Data Principals") across Odisha before processing digital personal data.
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-database" style="color: var(--primary);"></i> 1. Itemized Personal Data Collected</h3>
+            <p>In accordance with Section 5(1)(i) of the DPDP Act 2023, QPCP collects only strictly necessary digital personal data voluntarily submitted by you during registration or application:</p>
+            <table class="policy-table">
+              <thead>
+                <tr>
+                  <th>User Role</th>
+                  <th>Personal Data Categories Collected</th>
+                  <th>Legal Purpose of Processing</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Student / Parent</strong></td>
+                  <td>Full Name, 10-digit Phone/WhatsApp number, Email address, Academic standard/curriculum (e.g. CBSE/CHSE Class 12, JEE, NEET), Locality/City in Odisha, and optional profile avatar.</td>
+                  <td>To match and connect students with verified home tutors in their locality, coordinate demo classes, and track learning inquiries.</td>
+                </tr>
+                <tr>
+                  <td><strong>Faculty / Tutor Applicant</strong></td>
+                  <td>Full Name, Mobile number, Email, Teaching subjects, Hourly charges (₹), Educational experience, Locality/City in Odisha, Bio, Intro Demo Video (30s-5min), CV/Resume file, and profile avatar.</td>
+                  <td>To verify academic credentials, evaluate teaching proficiency, feature profiles to prospective students across Odisha, and manage tutoring assignments.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-bullseye" style="color: var(--primary);"></i> 2. Purpose Limitation & Processing Grounds (DPDP Section 4 & 5)</h3>
+            <p>Your personal data is processed solely for specified, explicit, and lawful purposes:</p>
+            <ul>
+              <li><strong>Tutor Matchmaking:</strong> Enabling parents and students in Odisha to discover verified tutors matching required grades, subjects, and pin codes.</li>
+              <li><strong>Contact Facilitation:</strong> Direct communication via WhatsApp, phone calls, or emails strictly related to scheduled home tutoring sessions.</li>
+              <li><strong>Student Contact Privacy Shield:</strong> Student mobile numbers and emails are confidential and never published publicly. Only admin and verified assigned tutors can interact.</li>
+              <li><strong>Zero Unrelated Commercialization:</strong> We DO NOT sell, rent, lease, or monetize your personal data to third-party marketing companies, ad brokers, or external telemarketers.</li>
+            </ul>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-check-double" style="color: var(--primary);"></i> 3. User Consent & Affirmative Opt-In (DPDP Section 6)</h3>
+            <p>Under Section 6 of the DPDP Act 2023, consent must be free, specific, informed, unconditional, and unambiguous with a clear affirmative action:</p>
+            <ul>
+              <li>Registration requires ticking the consent checkbox affirmatively. Pre-ticked boxes are strictly prohibited and not used on this platform.</li>
+              <li>Consent is specific to tutoring facilitation services and platform operations.</li>
+              <li><strong>Right to Withdraw Consent:</strong> Under Section 6(4), you may withdraw your consent at any time by writing to our Grievance Officer. Upon receipt of valid withdrawal, QPCP will cease processing your personal data within statutory timeframes, with the consequence that tutoring matchmaking services will be terminated.</li>
+            </ul>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> 4. Rights of Data Principals (DPDP Sections 11, 12, 13, 14)</h3>
+            <p>The DPDP Act, 2023 guarantees you the following actionable legal rights:</p>
+            <ul>
+              <li><strong>Right to Access Information (Section 11):</strong> Right to obtain a summary of your personal data being processed and identities of parties with whom data has been shared.</li>
+              <li><strong>Right to Correction & Erasure (Section 12):</strong> Right to correct misleading or inaccurate data, update incomplete details, or request erasure of personal data that is no longer required for tutoring.</li>
+              <li><strong>Right of Grievance Redressal (Section 13):</strong> Right to readily available grievance redressal mechanisms with our designated Grievance Officer.</li>
+              <li><strong>Right to Nominate (Section 14):</strong> Right to nominate an individual to exercise data rights on your behalf in the event of death or incapacity.</li>
+              <li><strong>Right to Complain to Board:</strong> If unsatisfied with grievance resolution, you hold the statutory right to file a complaint directly with the <strong>Data Protection Board of India</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-envelope-open-text" style="color: var(--primary);"></i> 5. Grievance Redressal Officer Contact Details</h3>
+            <div style="background: #f8fafc; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-size: 0.84rem;">
+              <p style="margin-bottom: 0.35rem;"><strong>Designated Grievance Redressal Officer:</strong> Data Compliance Desk, Quick Progressive Career Point</p>
+              <p style="margin-bottom: 0.35rem;"><strong>Official Support Email:</strong> <a href="mailto:support@quickprogressive.edu.in">support@quickprogressive.edu.in</a></p>
+              <p style="margin-bottom: 0.35rem;"><strong>Dedicated Grievance Email:</strong> <a href="mailto:grievance@quickprogressive.edu.in">grievance@quickprogressive.edu.in</a></p>
+              <p style="margin-bottom: 0.35rem;"><strong>Helpline & WhatsApp:</strong> +91 70082 21300</p>
+              <p style="margin: 0; color: var(--text-dim); font-size: 0.78rem;">Statutory Response SLA: Grievance inquiries are acknowledged within 24 hours and addressed within 7 business days.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- PANE 2: TERMS OF SERVICE & INTERMEDIARY LIMITATION OF LIABILITY -->
+        <div id="privacy-pane-terms" style="display: none;">
+          
+          <div class="policy-alert-box danger">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.15rem; vertical-align: middle; margin-right: 0.35rem;"></i>
+            <strong>CRITICAL LEGAL DISCLAIMER & LIMITATION OF LIABILITY:</strong> Quick Progressive Career Point (QPCP) operates exclusively as an online educational intermediary under Section 79 of the Information Technology Act, 2000. Please read this limitation of liability carefully before registering an account.
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-key" style="color: var(--accent-rose);"></i> 1. User Sole Responsibility for Credentials & Device Security</h3>
+            <p>Every registered user (Student, Parent, Tutor) is solely and exclusively responsible for safeguarding their login credentials and account access:</p>
+            <ul>
+              <li>You must maintain the strict confidentiality of your password, username, email account, and mobile OTPs.</li>
+              <li>You must create a strong, compliant password meeting the platform's security policy.</li>
+              <li>You are strictly prohibited from sharing your login credentials with any third party, friend, or unauthorized individual.</li>
+              <li>All activities, inquiries, communications, and transactions initiated under your registered credentials are deemed to have been executed by you.</li>
+            </ul>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-shield-slash" style="color: var(--accent-rose);"></i> 2. Complete Disclaimer of Liability: If Credentials or Data are Lost, QPCP is NOT to Blame</h3>
+            <div class="policy-alert-box" style="background: #fff1f2; border-left-color: #e11d48; color: #881337;">
+              <strong>EXPRESS LEGAL RELEASE:</strong> If a user's password, login credentials, phone, SIM card, computer, or personal devices are lost, misplaced, stolen, compromised, hacked, infected with malware, or accessed without authorization due to user negligence, weak passwords, device sharing, or third-party acts:
+              <br><br>
+              <strong>QUICK PROGRESSIVE CAREER POINT, ITS FOUNDERS, OPERATORS, EMPLOYEES, AND ADMINISTRATORS SHALL BEAR ZERO RESPONSIBILITY OR LIABILITY AND ARE NOT THE ONES TO BLAME.</strong> Under no circumstances will QPCP be held accountable or liable for any unauthorized access, identity impersonation, account takeover, private conversation exposure, loss of personal data, or any resultant direct or indirect damages.
+            </div>
+            <p>QPCP maintains industry-standard database security and encryption; however, no internet transmission or user-end hardware is impenetrable. Users assume 100% of the risk associated with their local devices, browsers, and internet connectivity.</p>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-handshake-slash" style="color: var(--text-main);"></i> 3. Intermediary Status & Offline Tutoring Disclaimer</h3>
+            <p>Quick Progressive Career Point operates strictly as a digital matching platform connecting independent freelance tutors with students/parents in Odisha:</p>
+            <ul>
+              <li><strong>Independent Contractors:</strong> Tutors listed on QPCP are independent educational educators and NOT employees, agents, or representatives of QPCP.</li>
+              <li><strong>Offline Lessons at Private Homes:</strong> All tutoring sessions occur privately at the student's residence or tutor's location. QPCP does NOT supervise, monitor, or manage physical offline classes.</li>
+              <li><strong>Zero Liability for Conduct or Safety:</strong> QPCP holds zero liability for the personal conduct, behavior, punctuality, safety, physical security, or dispute arising between tutors, parents, and students. Parents and guardians must exercise normal prudence and presence during home tutoring sessions.</li>
+              <li><strong>Financial & Fee Arrangements:</strong> Tuition fee agreements, cash or online exchanges, and fee schedules negotiated between parents and tutors are private bilateral matters. QPCP holds zero liability for payment defaults, non-refunds, or fee disputes.</li>
+              <li><strong>Academic Results:</strong> QPCP makes no representation or warranty regarding guaranteed exam scores, school ranks, or admission outcomes.</li>
+            </ul>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-file-contract" style="color: var(--primary);"></i> 4. "AS IS" Platform & Limitation of Consequential Damages</h3>
+            <p>The platform, database services, and match-making directory are provided strictly on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis without warranties of any kind, whether express, statutory, or implied.</p>
+            <p>To the maximum extent permitted under applicable laws of India, QPCP and its operators shall in no event be liable for any indirect, punitive, incidental, special, exemplary, or consequential damages, including loss of data, loss of devices, emotional distress, or commercial losses arising out of or related to your use of the platform.</p>
+          </div>
+
+          <div class="policy-doc-section">
+            <h3><i class="fa-solid fa-gavel" style="color: var(--primary);"></i> 5. Governing Law & Dispute Jurisdiction</h3>
+            <p>These terms and all related privacy notices are governed by and construed in accordance with the substantive laws of the Republic of India (including the Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000). Any dispute, claim, or controversy arising hereunder shall be subject to the exclusive jurisdiction of the competent courts situated in <strong>Bhubaneswar / Cuttack, Odisha, India</strong>.</p>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.15rem; padding-top: 1rem; border-top: 1px solid var(--glass-border); flex-wrap: wrap; gap: 0.75rem;">
+        <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem;">
+          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> 
+          <span>Standard agreement required for registration</span>
+        </div>
+        <div style="display: flex; gap: 0.6rem;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="app.closeModal('privacy-policy-modal')">Close</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="app.acceptPrivacyAndClose()">
+            <i class="fa-solid fa-check"></i> I Understand & Accept
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 9. Admin Gallery Upload Modal (Exclusive to Admin, 100% Server Database Persistent) -->
+  <div class="modal-overlay" id="admin-gallery-modal">
+    <div class="modal-card" style="max-width: 620px;">
+      <button class="modal-close" onclick="app.closeModal('admin-gallery-modal')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.25rem;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1px solid var(--glass-border); flex-shrink: 0;">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <div>
+          <h2 class="modal-title" style="margin-bottom: 0.15rem; font-size: 1.3rem;">Upload Photo to Gallery</h2>
+          <p class="modal-subtitle" style="margin: 0; font-size: 0.82rem;">QPCP Admin Command Center • Server Database Storage (Zero LocalStorage)</p>
+        </div>
+      </div>
+
+      <form id="admin-gallery-form" onsubmit="app.handleAdminGalleryUpload(event)">
+        <div class="form-group">
+          <label class="form-label" for="gal-photo-title">Photo Title <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
+          <input type="text" class="form-control" id="gal-photo-title" required placeholder="e.g., Annual Science Kit Demonstration & Toppers Felicitation" maxlength="120">
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="gal-photo-category">Category <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
+            <select class="form-control" id="gal-photo-category" required>
+              <option value="Achievements">Achievements & Rankers</option>
+              <option value="Classrooms">Home Tutoring Sessions</option>
+              <option value="Workshops">Faculty Workshops</option>
+              <option value="Celebrations">Celebrations & Events</option>
+              <option value="Labs">Practical Kits & Experiments</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="gal-image-source-type">Image Source <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
+            <select class="form-control" id="gal-image-source-type" onchange="app.toggleGalleryImageSource(this.value)">
+              <option value="file">Upload File from Device</option>
+              <option value="url">Enter Image URL or Path</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div class="form-group" id="gal-file-group">
+          <label class="form-label" for="gal-photo-file">Select Image File (JPG, PNG, WebP) <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
+          <input type="file" class="form-control" id="gal-photo-file" accept="image/*" onchange="app.handleGalleryFilePreview(event)">
+          <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Images are saved directly to the server filesystem (<code style="background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px;">assets/gallery_uploads/</code>) and database.
+          </div>
+        </div>
+
+        <!-- URL Section (Hidden by default or toggled) -->
+        <div class="form-group" id="gal-url-group" style="display: none;">
+          <label class="form-label" for="gal-photo-url">Image URL or Local Asset Path</label>
+          <input type="text" class="form-control" id="gal-photo-url" placeholder="e.g., assets/gallery_classroom.jpg or https://..." oninput="app.handleGalleryUrlPreview(this.value)">
+        </div>
+
+        <!-- Image Preview Card -->
+        <div id="gal-preview-container" style="display: none; margin-bottom: 1.25rem; border: 1px solid var(--glass-border); border-radius: var(--radius-md); overflow: hidden; background: #000; text-align: center; position: relative;">
+          <img id="gal-preview-img" src="" alt="Selected Preview" style="max-height: 220px; width: 100%; object-fit: contain;">
+          <span style="position: absolute; bottom: 8px; right: 8px; font-size: 0.72rem; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 4px;">Preview</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="gal-photo-desc">Description / Caption <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
+          <textarea class="form-control" id="gal-photo-desc" rows="3" required placeholder="Provide details about the session, achievements, students, or faculty featured in this photo..." maxlength="400"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('admin-gallery-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="gal-submit-btn" style="background: #0f172a; border-color: #334155;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Server Database
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- JavaScript Scripts -->
-  <script type="module" src="store.js?v=20260924_v8"></script>
-  <script type="module" src="app.js?v=20260924_v8"></script>
+  <script type="module" src="store.js?v=20260925_cleanurl2"></script>
+  <script type="module" src="app.js?v=20260925_cleanurl2"></script>
 </body>
 </html>
