@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Quick Progressive Career Point - Premier Home Tutoring Across Odisha</title>
   <meta name="description" content="Quick Progressive Career Point connects verified expert home tutors across Odisha (Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur) with students for 1-on-1 personalized learning.">
   
@@ -207,12 +210,12 @@
       </div>
 
       <div class="footer-col">
-        <h4>Authorities</h4>
+        <h4>Portals & Login</h4>
         <ul class="footer-links">
-          <li><a href="#" onclick="app.switchDemoRole('student')">Student Portal</a></li>
-          <li><a href="#" onclick="app.switchDemoRole('applicant')">Teacher Onboarding</a></li>
-          <li><a href="#" onclick="app.switchDemoRole('teacher')">Verified Faculty</a></li>
-          <li><a href="#" onclick="app.switchDemoRole('admin')">Admin Command Center</a></li>
+          <li><a href="#" onclick="app.openStudentAuth('login')"><i class="fa-solid fa-graduation-cap"></i> Student Portal</a></li>
+          <li><a href="#" onclick="app.openTeacherAuth('login')"><i class="fa-solid fa-chalkboard-user"></i> Verified Faculty</a></li>
+          <li><a href="#" onclick="app.openTeacherAuth('signup')"><i class="fa-solid fa-file-signature"></i> Teacher Application</a></li>
+          <li><a href="#" onclick="app.openAdminAuth()"><i class="fa-solid fa-user-shield"></i> Admin Command Center</a></li>
         </ul>
       </div>
 
@@ -560,11 +563,41 @@
     </div>
   </div>
 
+  <!-- 7. Admin Auth Modal -->
+  <div class="modal-overlay" id="admin-auth-modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="app.closeModal('admin-auth-modal')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #0f172a; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.75rem; border: 2px solid var(--glass-border);">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <h2 class="modal-title" style="margin-bottom: 0.25rem;">Admin Command Center</h2>
+        <p class="modal-subtitle">Authorized QPCP Odisha Administrators Only</p>
+      </div>
+
+      <form id="admin-login-form" onsubmit="app.handleAdminLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Admin Username or Email</label>
+          <input type="text" class="form-control" id="adm-login-user" required placeholder="admin or admin@quickprogressive.edu.in" maxlength="80">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Admin Password</label>
+          <input type="password" class="form-control" id="adm-login-pass" required placeholder="Enter admin password" maxlength="64">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: #0f172a; border-color: #334155;">
+          <i class="fa-solid fa-shield-halved"></i> Access Command Center
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- JavaScript Scripts -->
-  <script type="module" src="store.js"></script>
-  <script type="module" src="app.js"></script>
+  <script type="module" src="store.js?v=20260924_v8"></script>
+  <script type="module" src="app.js?v=20260924_v8"></script>
 </body>
 </html>

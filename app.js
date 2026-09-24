@@ -4,7 +4,7 @@
  * Cities & Districts Covered: Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore, Puri & all 30 Districts
  */
 
-import { store } from './store.js';
+import { store } from './store.js?v=20260924_v8';
 
 class AppController {
   constructor() {
@@ -17,9 +17,26 @@ class AppController {
     this.galleryFilter = 'all';
   }
 
-  init() {
+  async init() {
     this.renderHeader();
     this.renderMainView();
+
+    if (store.supabase) {
+      await store.syncFromSupabase();
+      this.renderHeader();
+      this.renderMainView();
+    }
+
+    if (!this.syncInterval) {
+      this.syncInterval = setInterval(async () => {
+        const changed = await store.syncFromSupabase();
+        if (changed) {
+          console.log('⚡ Cross-device live data update synced from Supabase!');
+          this.renderHeader();
+          this.renderMainView();
+        }
+      }, 3000);
+    }
   }
 
   // --- Toast Notifications ---
@@ -93,6 +110,28 @@ class AppController {
     this.openModal('teacher-auth-modal');
   }
 
+  openAdminAuth() {
+    this.openModal('admin-auth-modal');
+  }
+
+  async handleAdminLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('adm-login-user').value;
+    const p = document.getElementById('adm-login-pass').value;
+
+    try {
+      const user = await store.login(u, p, 'admin');
+      if (user.role !== 'admin') {
+        throw new Error('Access denied: Administrator privileges required.');
+      }
+      this.closeModal('admin-auth-modal');
+      this.showToast('Welcome to Admin Command Center!', 'success');
+      this.init();
+    } catch (err) {
+      this.showToast(err.message, 'error');
+    }
+  }
+
   // --- Page Navigation Router ---
   navigateTo(viewName) {
     this.currentView = viewName;
@@ -119,30 +158,7 @@ class AppController {
     }
   }
 
-  // --- Quick Demo Switcher ---
-  switchDemoRole(role) {
-    try {
-      if (role === 'guest') {
-        store.logout();
-        this.showToast('Logged out to Guest view.', 'info');
-      } else if (role === 'student') {
-        store.login('rohan_s10', '123', 'student');
-        this.showToast('Logged in as Student (Rohan Sharma, Patia, Bhubaneswar)', 'success');
-      } else if (role === 'applicant') {
-        store.login('suresh_bio', '123', 'teacher');
-        this.showToast('Logged in as Teacher Applicant (Suresh Raina, Sambalpur)', 'info');
-      } else if (role === 'teacher') {
-        store.login('dr_rajesh', '123', 'teacher');
-        this.showToast('Logged in as Verified Faculty (Dr. Rajesh Verma, Infocity)', 'success');
-      } else if (role === 'admin') {
-        store.login('admin', 'admin');
-        this.showToast('Logged in as Admin', 'success');
-      }
-      this.init();
-    } catch (err) {
-      this.showToast(err.message, 'error');
-    }
-  }
+
 
   // --- Header Navigation ---
   renderHeader() {
@@ -907,6 +923,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
   // --- Verified Teacher Dashboard (Strict Privacy Filters) ---
   renderVerifiedTeacherDashboard(user) {
+    if (!user || (user.role !== 'verified_teacher' && user.role !== 'admin')) {
+      this.showToast('Access denied: Verified Faculty privileges required.', 'error');
+      this.navigateTo('home');
+      return;
+    }
+
     const root = document.getElementById('app-root');
     const studentsPrivacy = store.getStudentsPrivacyProtected();
     const myAssignments = store.getAssignmentsForTeacher(user.id);
@@ -957,6 +979,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   }
 
   switchTeacherTab(tab) {
+    const user = store.getCurrentUser();
+    if (!user || (user.role !== 'verified_teacher' && user.role !== 'admin')) {
+      this.showToast('Access denied: Verified Faculty privileges required.', 'error');
+      this.navigateTo('home');
+      return;
+    }
     this.teacherActiveTab = tab;
     this.renderMainView();
   }
@@ -1042,6 +1070,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
   // --- Admin Command Center ---
   renderAdminDashboard(user) {
+    if (!user || user.role !== 'admin') {
+      this.showToast('Access denied: Administrator privileges required.', 'error');
+      this.navigateTo('home');
+      return;
+    }
+
     const root = document.getElementById('app-root');
 
     const applicants = store.getTeacherApplicantsAdmin();
@@ -1099,6 +1133,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   }
 
   switchAdminTab(tab) {
+    const user = store.getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      this.showToast('Access denied: Administrator privileges required.', 'error');
+      this.navigateTo('home');
+      return;
+    }
     this.adminActiveTab = tab;
     this.renderMainView();
   }
@@ -1494,13 +1534,13 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   }
 
   // --- Auth & Form Handlers ---
-  handleStudentLogin(e) {
+  async handleStudentLogin(e) {
     e.preventDefault();
     const u = document.getElementById('std-login-user').value;
     const p = document.getElementById('std-login-pass').value;
 
     try {
-      store.login(u, p, 'student');
+      await store.login(u, p, 'student');
       this.closeModal('student-auth-modal');
       this.showToast('Student logged in successfully!', 'success');
       this.init();
@@ -1509,7 +1549,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     }
   }
 
-  handleStudentSignup(e) {
+  async handleStudentSignup(e) {
     e.preventDefault();
     const username = document.getElementById('std-reg-username').value;
     const phone = document.getElementById('std-reg-phone').value;
@@ -1548,7 +1588,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     };
 
     try {
-      store.registerStudent(data);
+      await store.registerStudent(data);
       this.closeModal('student-auth-modal');
       this.showToast('Student registered & logged in!', 'success');
       this.init();
@@ -1557,13 +1597,13 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     }
   }
 
-  handleTeacherLogin(e) {
+  async handleTeacherLogin(e) {
     e.preventDefault();
     const u = document.getElementById('tch-login-user').value;
     const p = document.getElementById('tch-login-pass').value;
 
     try {
-      store.login(u, p, 'teacher');
+      await store.login(u, p, 'teacher');
       this.closeModal('teacher-auth-modal');
       this.showToast('Teacher logged in!', 'success');
       this.init();
@@ -1572,7 +1612,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     }
   }
 
-  handleTeacherSignup(e) {
+  async handleTeacherSignup(e) {
     e.preventDefault();
     const username = document.getElementById('tch-reg-username').value;
     const phone = document.getElementById('tch-reg-phone').value;
@@ -1616,7 +1656,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     };
 
     try {
-      store.registerTeacher(data);
+      await store.registerTeacher(data);
       this.closeModal('teacher-auth-modal');
       this.showToast('Home tutor application submitted! Under admin review.', 'info');
       this.init();
