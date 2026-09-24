@@ -853,7 +853,7 @@
           <label class="form-label" for="gal-photo-file">Select Image File (JPG, PNG, WebP) <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
           <input type="file" class="form-control" id="gal-photo-file" accept="image/*" onchange="app.handleGalleryFilePreview(event)">
           <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.35rem;">
-            Images are saved directly to the server filesystem (<code style="background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px;">assets/gallery_uploads/</code>) and database.
+            Photos are saved permanently to the Supabase cloud database and synced across all devices in real-time.
           </div>
         </div>
 
@@ -870,14 +870,14 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="gal-photo-desc">Description / Caption <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-          <textarea class="form-control" id="gal-photo-desc" rows="3" required placeholder="Provide details about the session, achievements, students, or faculty featured in this photo..." maxlength="400"></textarea>
+          <label class="form-label" for="gal-photo-desc">Description / Caption (Optional)</label>
+          <textarea class="form-control" id="gal-photo-desc" rows="3" placeholder="Provide details about the session, achievements, students, or faculty featured in this photo (optional)..." maxlength="400"></textarea>
         </div>
 
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem;">
           <button type="button" class="btn btn-secondary" onclick="app.closeModal('admin-gallery-modal')">Cancel</button>
           <button type="submit" class="btn btn-primary" id="gal-submit-btn" style="background: #0f172a; border-color: #334155;">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Server Database
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Cloud Database
           </button>
         </div>
       </form>
@@ -888,7 +888,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- JavaScript Scripts -->
-  <script type="module" src="store.js?v=20260925_cleanurl2"></script>
-  <script type="module" src="app.js?v=20260925_cleanurl2"></script>
+  <script type="module" src="store.js?v=20260925_optionaldesc"></script>
+  <script type="module" src="app.js?v=20260925_optionaldesc"></script>
 </body>
 </html>

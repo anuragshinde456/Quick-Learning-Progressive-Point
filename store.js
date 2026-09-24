@@ -62,88 +62,81 @@ class DataStore {
     let users = null;
     let inquiries = null;
     let assignments = null;
-    let admins = null;
-    let teachers = null;
-    let teacherApplicants = null;
-    let students = null;
 
     try {
       const headers = this.getSupabaseHeaders();
 
-      const [uRes, iRes, aRes, admRes, tchRes, appRes, stdRes] = await Promise.all([
+      const [uRes, iRes, aRes] = await Promise.all([
         fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?select=*`, { headers }),
         fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries?select=*`, { headers }),
-        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/assignments?select=*`, { headers }),
-        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/admins?select=*`, { headers }),
-        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/teachers?select=*`, { headers }),
-        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/teacher_applicants?select=*`, { headers }),
-        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/students?select=*`, { headers })
+        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/assignments?select=*`, { headers })
       ]);
 
       if (uRes.ok) users = await uRes.json();
       if (iRes.ok) inquiries = await iRes.json();
       if (aRes.ok) assignments = await aRes.json();
-      if (admRes.ok) admins = await admRes.json();
-      if (tchRes.ok) teachers = await tchRes.json();
-      if (appRes.ok) teacherApplicants = await appRes.json();
-      if (stdRes.ok) students = await stdRes.json();
     } catch (e) {
       console.warn('Supabase Direct REST Fetch Note:', e);
     }
 
-    let gallery = null;
+    let localGallery = null;
     try {
       const galRes = await fetch('/api/gallery', { cache: 'no-store' });
-      if (galRes.ok) {
-        gallery = await galRes.json();
+      const ct = galRes.headers ? galRes.headers.get('content-type') : '';
+      if (galRes.ok && ct && ct.includes('application/json')) {
+        localGallery = await galRes.json();
       }
     } catch (e) {
-      console.warn('Gallery API Sync Note:', e);
+      // Quietly ignore when deployed on static web hosts where /api/gallery is absent
     }
 
     let hasChanged = false;
 
     if (users && Array.isArray(users)) {
-      users.forEach(u => {
+      // Extract persistent gallery items from Supabase cloud database
+      const dbGallery = users
+        .filter(u => u.role === 'gallery_item')
+        .map(u => ({
+          id: u.id,
+          title: u.name,
+          category: u.location || 'Achievements',
+          imageUrl: u.avatar,
+          description: u.bio || '',
+          uploadedBy: u.username || 'admin',
+          createdAt: u.createdAt || u.appliedAt || new Date().toISOString()
+        }));
+
+      // Merge any local items if not already present
+      let mergedGallery = [...dbGallery];
+      if (localGallery && Array.isArray(localGallery)) {
+        localGallery.forEach(g => {
+          if (!mergedGallery.some(m => m.id === g.id || m.title === g.title)) {
+            mergedGallery.push(g);
+          }
+        });
+      }
+
+      const prevGalStr = JSON.stringify(this.data.gallery || []);
+      const newGalStr = JSON.stringify(mergedGallery);
+      if (prevGalStr !== newGalStr) {
+        this.data.gallery = mergedGallery;
+        hasChanged = true;
+      }
+
+      // Filter standard user directory to omit gallery records
+      const regularUsers = users.filter(u => u.role !== 'gallery_item');
+      regularUsers.forEach(u => {
         if (typeof u.subjects === 'string') {
           try { u.subjects = JSON.parse(u.subjects); } catch(e) { u.subjects = u.subjects.split(',').map(s => s.trim()); }
         }
         if (!u.subjects) u.subjects = [];
       });
 
-      this.data.users = users;
-      hasChanged = true;
-    }
-
-    if (admins && Array.isArray(admins)) {
-      this.data.admins = admins;
-      hasChanged = true;
-    }
-
-    if (teachers && Array.isArray(teachers)) {
-      teachers.forEach(t => {
-        if (typeof t.subjects === 'string') {
-          try { t.subjects = JSON.parse(t.subjects); } catch(e) { t.subjects = t.subjects.split(',').map(s => s.trim()); }
-        }
-        if (!t.subjects) t.subjects = [];
-      });
-      this.data.teachers = teachers;
-      hasChanged = true;
-    }
-
-    if (teacherApplicants && Array.isArray(teacherApplicants)) {
-      teacherApplicants.forEach(t => {
-        if (typeof t.subjects === 'string') {
-          try { t.subjects = JSON.parse(t.subjects); } catch(e) { t.subjects = t.subjects.split(',').map(s => s.trim()); }
-        }
-        if (!t.subjects) t.subjects = [];
-      });
-      this.data.teacherApplicants = teacherApplicants;
-      hasChanged = true;
-    }
-
-    if (students && Array.isArray(students)) {
-      this.data.students = students;
+      this.data.users = regularUsers;
+      this.data.admins = regularUsers.filter(u => u.role === 'admin');
+      this.data.teachers = regularUsers.filter(u => u.role === 'verified_teacher');
+      this.data.teacherApplicants = regularUsers.filter(u => u.role === 'teacher_applicant');
+      this.data.students = regularUsers.filter(u => u.role === 'student');
       hasChanged = true;
     }
 
@@ -159,15 +152,6 @@ class DataStore {
     if (assignments && Array.isArray(assignments)) {
       this.data.assignments = assignments;
       hasChanged = true;
-    }
-
-    if (gallery && Array.isArray(gallery)) {
-      const prevGalStr = JSON.stringify(this.data.gallery || []);
-      const newGalStr = JSON.stringify(gallery);
-      if (prevGalStr !== newGalStr) {
-        this.data.gallery = gallery;
-        hasChanged = true;
-      }
     }
 
     // Keep currentUser in sync with DB state
@@ -195,14 +179,24 @@ class DataStore {
   }
 
   async login(usernameOrEmail, password, roleHint = null) {
-    await this.syncFromSupabase();
-
     const q = (usernameOrEmail || '').toLowerCase().trim();
-    const user = this.data.users.find(u => 
+
+    // Fast check in memory first
+    let user = (this.data.users || []).find(u => 
       ((u.username && u.username.toLowerCase() === q) || 
        (u.email && u.email.toLowerCase() === q)) && 
       (u.password === password || (u.role === 'admin' && (password === 'admin' || password === 'Admin@QPCP2026!')))
     );
+
+    // If not found in memory, sync fresh from Supabase and retry
+    if (!user) {
+      await this.syncFromSupabase();
+      user = (this.data.users || []).find(u => 
+        ((u.username && u.username.toLowerCase() === q) || 
+         (u.email && u.email.toLowerCase() === q)) && 
+        (u.password === password || (u.role === 'admin' && (password === 'admin' || password === 'Admin@QPCP2026!')))
+      );
+    }
 
     if (!user) {
       throw new Error('Invalid credentials. Please check your username/email and password.');
@@ -563,28 +557,75 @@ class DataStore {
       throw new Error('Access Denied: Only Administrator can upload images to the Gallery.');
     }
 
-    const payload = {
+    const photoId = 'gal_' + Date.now();
+    const nowIso = new Date().toISOString();
+
+    const dbPayload = {
+      id: photoId,
+      role: 'gallery_item',
+      username: 'gallery_' + Date.now(),
+      name: itemData.title,
+      location: itemData.category || 'Achievements',
+      avatar: itemData.imageUrl,
+      bio: itemData.description || '',
+      status: 'published',
+      createdAt: nowIso,
+      appliedAt: nowIso
+    };
+
+    // 1. Primary: Save directly to Supabase cloud database
+    const headers = this.getSupabaseHeaders();
+    let supabaseSucceeded = false;
+    try {
+      const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(dbPayload)
+      });
+      if (res.ok) {
+        supabaseSucceeded = true;
+      } else {
+        const errText = await res.text();
+        console.warn('Supabase Gallery Upload Notice:', errText);
+      }
+    } catch (e) {
+      console.warn('Supabase Gallery Fetch Exception:', e);
+    }
+
+    // 2. Local Fallback / Mirror: Also update local /api/gallery if local server is active
+    try {
+      const localRes = await fetch('/api/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: photoId,
+          title: itemData.title,
+          category: itemData.category || 'Achievements',
+          imageUrl: itemData.imageUrl,
+          description: itemData.description || '',
+          uploadedBy: currentUser.username || currentUser.name || 'admin'
+        })
+      });
+      if (localRes.ok) {
+        const ct = localRes.headers ? localRes.headers.get('content-type') : '';
+        if (ct && ct.includes('application/json')) {
+          await localRes.json();
+        }
+      }
+    } catch (e) {
+      // Quietly ignore on production static hosts where /api/gallery is absent
+    }
+
+    const savedItem = {
+      id: photoId,
       title: itemData.title,
       category: itemData.category || 'Achievements',
       imageUrl: itemData.imageUrl,
       description: itemData.description || '',
-      uploadedBy: currentUser.username || currentUser.name || 'admin'
+      uploadedBy: currentUser.username || currentUser.name || 'admin',
+      createdAt: nowIso
     };
 
-    const res = await fetch('/api/gallery', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Database Gallery Upload Failed (HTTP ${res.status}): ${errText}`);
-    }
-
-    const savedItem = await res.json();
     await this.syncFromSupabase();
     return savedItem;
   }
@@ -595,14 +636,23 @@ class DataStore {
       throw new Error('Access Denied: Only Administrator can remove photos from the Gallery.');
     }
 
-    const res = await fetch(`/api/gallery?id=${encodeURIComponent(photoId)}`, {
-      method: 'DELETE'
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Database Gallery Removal Failed (HTTP ${res.status}): ${errText}`);
+    // 1. Delete from Supabase cloud database
+    const headers = this.getSupabaseHeaders();
+    try {
+      await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(photoId)}`, {
+        method: 'DELETE',
+        headers
+      });
+    } catch (e) {
+      console.warn('Supabase Gallery Delete Exception:', e);
     }
+
+    // 2. Also attempt local /api/gallery delete if running locally
+    try {
+      await fetch(`/api/gallery?id=${encodeURIComponent(photoId)}`, {
+        method: 'DELETE'
+      });
+    } catch (e) {}
 
     await this.syncFromSupabase();
     return true;

@@ -97,6 +97,21 @@ class AppController {
     if (modal) modal.classList.remove('active');
   }
 
+  closeAllModals() {
+    const modalIds = [
+      'student-auth-modal',
+      'teacher-auth-modal',
+      'admin-auth-modal',
+      'admin-gallery-modal',
+      'privacy-policy-modal',
+      'video-demo-modal',
+      'student-edit-modal',
+      'image-lightbox-modal',
+      'supabase-config-modal'
+    ];
+    modalIds.forEach(id => this.closeModal(id));
+  }
+
   openLightbox(imgUrl, caption) {
     const img = document.getElementById('lightbox-img');
     const cap = document.getElementById('lightbox-caption');
@@ -236,7 +251,7 @@ class AppController {
     const title = document.getElementById('gal-photo-title')?.value?.trim();
     const category = document.getElementById('gal-photo-category')?.value;
     const sourceType = document.getElementById('gal-image-source-type')?.value;
-    const desc = document.getElementById('gal-photo-desc')?.value?.trim();
+    const desc = document.getElementById('gal-photo-desc')?.value?.trim() || '';
     const submitBtn = document.getElementById('gal-submit-btn');
 
     let imageUrl = '';
@@ -254,8 +269,8 @@ class AppController {
       }
     }
 
-    if (!title || !desc) {
-      this.showToast('Please enter both title and description.', 'warning');
+    if (!title) {
+      this.showToast('Please enter a photo title.', 'warning');
       return;
     }
 
@@ -274,7 +289,7 @@ class AppController {
       });
 
       this.closeModal('admin-gallery-modal');
-      this.showToast('Photo successfully published to server database!', 'success');
+      this.showToast('Photo successfully published to cloud database!', 'success');
 
       if (this.currentView === 'gallery') {
         this.renderGalleryPage();
@@ -489,6 +504,18 @@ class AppController {
     this.updatePageTitle(cleanPath);
     this.updateActiveNavLinks(cleanPath);
 
+    // Close any leftover open modals when navigating to content views
+    const isAuthRoute = [
+      '/student/login', '/student/signup', '/student/register',
+      '/teacher/login', '/teacher/signup', '/teacher/register',
+      '/admin/login', '/admin/auth',
+      '/privacy-policy', '/terms'
+    ].includes(cleanPath);
+
+    if (!isAuthRoute) {
+      this.closeAllModals();
+    }
+
     // 1. Global Public Views
     if (cleanPath === '/' || cleanPath === '/home') {
       this.currentView = 'home';
@@ -572,7 +599,7 @@ class AppController {
 
     // 4. Student Portal Modules & Submodules
     if (cleanPath.startsWith('/student')) {
-      if (!user || user.role !== 'student') {
+      if (!user || (user.role !== 'student' && user.role !== 'admin')) {
         this.showToast('Please login to access the Student Portal.', 'info');
         this.openStudentAuth('login');
         this.currentView = 'home';
@@ -596,10 +623,16 @@ class AppController {
 
     // 5. Teacher Portal Modules & Submodules
     if (cleanPath.startsWith('/teacher')) {
-      if (!user || (user.role !== 'verified_teacher' && user.role !== 'teacher_applicant')) {
+      if (!user || (user.role !== 'verified_teacher' && user.role !== 'teacher_applicant' && user.role !== 'admin')) {
         this.showToast('Please login to access the Teacher Portal.', 'info');
         this.openTeacherAuth('login');
         this.currentView = 'home';
+        this.renderMainView();
+        return;
+      }
+      if (user.role === 'admin') {
+        this.currentView = 'teacher';
+        this.teacherActiveTab = 'students';
         this.renderMainView();
         return;
       }
@@ -1539,7 +1572,7 @@ class AppController {
                   </div>
                   <div style="padding: 1.25rem; display: flex; flex-direction: column; flex-grow: 1;">
                     <h3 style="font-size: 1.05rem; margin-bottom: 0.45rem; line-height: 1.4;">${item.title}</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; flex-grow: 1; margin-bottom: 1rem;">${item.description}</p>
+                    ${item.description ? `<p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; flex-grow: 1; margin-bottom: 1rem;">${item.description}</p>` : ''}
                     <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 0.75rem; margin-top: auto;">
                       <span style="font-size: 0.75rem; color: var(--text-dim);"><i class="fa-regular fa-clock"></i> ${new Date(item.createdAt || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       ${isAdmin ? `
@@ -2446,10 +2479,16 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     const p = document.getElementById('std-login-pass').value;
 
     try {
-      await store.login(u, p, 'student');
+      const user = await store.login(u, p, 'student');
       this.closeModal('student-auth-modal');
-      this.showToast('Student logged in successfully!', 'success');
-      this.navigateTo('/student/dashboard');
+      this.closeAllModals();
+      if (user.role === 'admin') {
+        this.showToast('Administrator logged in! Welcome to Admin Command Center.', 'success');
+        this.navigateTo('/admin/dashboard');
+      } else {
+        this.showToast('Student logged in successfully!', 'success');
+        this.navigateTo('/student/dashboard');
+      }
     } catch (err) {
       this.showToast(err.message, 'error');
     }
@@ -2521,10 +2560,19 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     const p = document.getElementById('tch-login-pass').value;
 
     try {
-      await store.login(u, p, 'teacher');
+      const user = await store.login(u, p, 'teacher');
       this.closeModal('teacher-auth-modal');
-      this.showToast('Teacher logged in!', 'success');
-      this.navigateTo('/teacher/dashboard');
+      this.closeAllModals();
+      if (user.role === 'admin') {
+        this.showToast('Administrator logged in! Welcome to Admin Command Center.', 'success');
+        this.navigateTo('/admin/dashboard');
+      } else if (user.role === 'teacher_applicant') {
+        this.showToast('Teacher application under review.', 'info');
+        this.navigateTo('/teacher/status');
+      } else {
+        this.showToast('Teacher logged in!', 'success');
+        this.navigateTo('/teacher/dashboard');
+      }
     } catch (err) {
       this.showToast(err.message, 'error');
     }
@@ -2590,6 +2638,22 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       this.closeModal('teacher-auth-modal');
       this.showToast('Home tutor application submitted! Under admin review.', 'info');
       this.init();
+    } catch (err) {
+      this.showToast(err.message, 'error');
+    }
+  }
+
+  async handleAdminLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('adm-login-user').value;
+    const p = document.getElementById('adm-login-pass').value;
+
+    try {
+      await store.login(u, p, 'admin');
+      this.closeModal('admin-auth-modal');
+      this.closeAllModals();
+      this.showToast('Administrator logged in successfully!', 'success');
+      this.navigateTo('/admin/dashboard');
     } catch (err) {
       this.showToast(err.message, 'error');
     }
