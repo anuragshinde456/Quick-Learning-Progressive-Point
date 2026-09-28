@@ -11,18 +11,28 @@ const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3Mi
 class DataStore {
   constructor() {
     this.purgeLocalStorage();
+    let initialUser = null;
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        const saved = sessionStorage.getItem('qpcp_session_user');
+        if (saved) initialUser = JSON.parse(saved);
+      }
+    } catch (_) {}
+
     this.data = {
-      currentUser: null,
-      users: [],
+      currentUser: initialUser,
+      users: initialUser ? [initialUser] : [],
       admins: [],
       teachers: [],
       teacherApplicants: [],
       students: [],
       inquiries: [],
+      studentInquiries: [],
       teacherRequests: [],
       assignments: [],
       gallery: []
     };
+    this.hasInitialSynced = false;
     this.initSupabaseClient();
   }
 
@@ -55,7 +65,6 @@ class DataStore {
 
   initSupabaseClient() {
     this.getSupabase();
-    this.syncFromSupabase();
   }
 
   async syncFromSupabase() {
@@ -65,16 +74,26 @@ class DataStore {
 
     try {
       const headers = this.getSupabaseHeaders();
+      const isAdmin = this.data.currentUser && this.data.currentUser.role === 'admin';
+      const userSelect = isAdmin 
+        ? '*' 
+        : 'id,name,username,email,role,status,phone,grade,subjects,rate,experience,location,avatar,bio,videoUrl,createdAt,appliedAt';
 
-      const [uRes, iRes, aRes] = await Promise.all([
-        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?select=*`, { headers }),
+      const results = await Promise.allSettled([
+        fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?select=${userSelect}`, { headers }),
         fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries?select=*`, { headers }),
         fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/assignments?select=*`, { headers })
       ]);
 
-      if (uRes.ok) users = await uRes.json();
-      if (iRes.ok) inquiries = await iRes.json();
-      if (aRes.ok) assignments = await aRes.json();
+      if (results[0].status === 'fulfilled' && results[0].value.ok) {
+        users = await results[0].value.json();
+      }
+      if (results[1].status === 'fulfilled' && results[1].value.ok) {
+        inquiries = await results[1].value.json();
+      }
+      if (results[2].status === 'fulfilled' && results[2].value.ok) {
+        assignments = await results[2].value.json();
+      }
     } catch (e) {
       console.warn('Supabase Direct REST Fetch Note:', e);
     }
@@ -146,11 +165,39 @@ class DataStore {
       this.data.teacherRequests = inquiries.filter(i => 
         i.subject === 'Teacher Request to Teach' || (i.id && i.id.startsWith('inq_tr_'))
       );
+      // Student applications for verified tutors
+      this.data.studentInquiries = inquiries.filter(i => 
+        i.subject !== 'Teacher Request to Teach' && !(i.id && i.id.startsWith('inq_tr_'))
+      );
       hasChanged = true;
     }
 
     if (assignments && Array.isArray(assignments)) {
-      this.data.assignments = assignments;
+      this.data.assignments = assignments.map(a => {
+        const teacher = (this.data.users || []).find(u => u.id === a.teacherId);
+        const student = (this.data.users || []).find(u => u.id === a.studentId);
+        return {
+          id: a.id,
+          teacherId: a.teacherId,
+          studentId: a.studentId,
+          createdAt: a.createdAt,
+          assignedAt: a.assignedAt || a.createdAt || new Date().toISOString(),
+          assignedBy: a.assignedBy || 'admin',
+          teacherName: a.teacherName || (teacher ? teacher.name : 'Unknown Faculty'),
+          teacherPhone: teacher ? (teacher.phone || '') : '',
+          teacherEmail: teacher ? (teacher.email || '') : '',
+          teacherSubjects: teacher ? (teacher.subjects || []) : [],
+          teacherLocation: teacher ? (teacher.location || '') : '',
+          teacherAvatar: teacher ? (teacher.avatar || '') : '',
+          teacherRate: teacher ? (teacher.rate || '') : '',
+          studentName: a.studentName || (student ? student.name : 'Unknown Student'),
+          studentPhone: student ? (student.phone || '') : '',
+          studentEmail: student ? (student.email || '') : '',
+          studentGrade: student ? (student.grade || '') : '',
+          studentLocation: student ? (student.location || '') : '',
+          studentAvatar: student ? (student.avatar || '') : ''
+        };
+      });
       hasChanged = true;
     }
 
@@ -159,9 +206,15 @@ class DataStore {
       const dbMatch = this.data.users.find(u => u.id === this.data.currentUser.id || u.username === this.data.currentUser.username);
       if (dbMatch) {
         this.data.currentUser = { ...this.data.currentUser, ...dbMatch };
+        try {
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('qpcp_session_user', JSON.stringify(this.data.currentUser));
+          }
+        } catch (_) {}
       }
     }
 
+    this.hasInitialSynced = true;
     return hasChanged;
   }
 
@@ -172,10 +225,70 @@ class DataStore {
 
   setCurrentUser(user) {
     this.data.currentUser = user;
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        if (user) {
+          sessionStorage.setItem('qpcp_session_user', JSON.stringify(user));
+        } else {
+          sessionStorage.removeItem('qpcp_session_user');
+        }
+      }
+    } catch (_) {}
   }
 
   logout() {
     this.data.currentUser = null;
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem('qpcp_session_user');
+      }
+    } catch (_) {}
+  }
+
+  async updateUserProfile(userId, updateFields) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) {
+      throw new Error('You must be logged in to update your profile.');
+    }
+    if (currentUser.id !== userId && currentUser.role !== 'admin') {
+      throw new Error('Access denied: You can only update your own profile.');
+    }
+
+    const allowed = ['name', 'phone', 'email', 'location', 'avatar', 'grade', 'subjects', 'rate', 'experience', 'bio', 'videoUrl', 'password'];
+    const payload = {};
+    for (const key of allowed) {
+      if (updateFields[key] !== undefined && updateFields[key] !== null) {
+        payload[key] = updateFields[key];
+      }
+    }
+
+    if (Object.keys(payload).length === 0) {
+      return currentUser;
+    }
+
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: this.getSupabaseHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to update profile in database (HTTP ${res.status}): ${errText}`);
+    }
+
+    // Merge updates into in-memory user
+    const inMem = (this.data.users || []).find(u => u.id === userId);
+    if (inMem) {
+      Object.assign(inMem, payload);
+    }
+    if (this.data.currentUser && this.data.currentUser.id === userId) {
+      const updatedUser = { ...this.data.currentUser, ...payload };
+      this.setCurrentUser(updatedUser);
+    }
+
+    await this.syncFromSupabase();
+    return this.data.currentUser;
   }
 
   async login(usernameOrEmail, password, roleHint = null) {
@@ -313,25 +426,43 @@ class DataStore {
     return newApplicant;
   }
 
-  updateUserProfile(userId, updateFields) {
-    const currentUser = this.data.users.find(u => u.id === userId);
-    if (!currentUser) throw new Error('User not found');
+  async updateUserProfile(userId, updateFields) {
+    const userIndex = (this.data.users || []).findIndex(u => u.id === userId);
+    if (userIndex === -1) throw new Error('User not found in system directory.');
 
-    if (updateFields.name) currentUser.name = updateFields.name;
-    if (updateFields.phone) currentUser.phone = updateFields.phone;
-    if (updateFields.avatar) currentUser.avatar = updateFields.avatar;
+    const currentUser = this.data.users[userIndex];
+    const allowed = ['name', 'phone', 'email', 'avatar', 'grade', 'location', 'subjects', 'rate', 'experience', 'bio', 'videoUrl'];
+    const dbPayload = {};
 
-    if (this.data.currentUser && this.data.currentUser.id === userId) {
-      this.data.currentUser = currentUser;
-    }
-
-    fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`, {
-      method: 'PATCH',
-      headers: this.getSupabaseHeaders(),
-      body: JSON.stringify(updateFields)
+    allowed.forEach(field => {
+      if (updateFields[field] !== undefined) {
+        dbPayload[field] = updateFields[field];
+        currentUser[field] = updateFields[field];
+      }
     });
 
-    return currentUser;
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: this.getSupabaseHeaders(),
+      body: JSON.stringify(dbPayload)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to update profile in database (HTTP ${res.status}): ${errText}`);
+    }
+
+    if (this.data.currentUser && this.data.currentUser.id === userId) {
+      this.data.currentUser = { ...this.data.currentUser, ...currentUser };
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem('qpcp_session_user', JSON.stringify(this.data.currentUser));
+        }
+      } catch (_) {}
+    }
+
+    await this.syncFromSupabase();
+    return this.data.currentUser || currentUser;
   }
 
   getVerifiedTeachers() {
@@ -408,11 +539,16 @@ class DataStore {
       createdAt: new Date().toISOString()
     };
 
-    await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries`, {
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries`, {
       method: 'POST',
       headers: this.getSupabaseHeaders(),
       body: JSON.stringify(newInquiry)
     });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to create inquiry in Supabase (HTTP ${res.status}): ${errText}`);
+    }
 
     await this.syncFromSupabase();
     return newInquiry;
@@ -439,14 +575,58 @@ class DataStore {
       createdAt: new Date().toISOString()
     };
 
-    await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries`, {
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries`, {
       method: 'POST',
       headers: this.getSupabaseHeaders(),
       body: JSON.stringify(newReq)
     });
 
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to send teaching request to Supabase (HTTP ${res.status}): ${errText}`);
+    }
+
     await this.syncFromSupabase();
     return newReq;
+  }
+
+  async updateInquiryStatus(inquiryId, status) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error('Access denied: Only Administrator can update inquiry status.');
+    }
+
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries?id=eq.${encodeURIComponent(inquiryId)}`, {
+      method: 'PATCH',
+      headers: this.getSupabaseHeaders(),
+      body: JSON.stringify({ status })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to update inquiry status in Supabase (HTTP ${res.status}): ${errText}`);
+    }
+
+    await this.syncFromSupabase();
+  }
+
+  async deleteInquiry(inquiryId) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error('Access denied: Only Administrator can delete inquiries.');
+    }
+
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/inquiries?id=eq.${encodeURIComponent(inquiryId)}`, {
+      method: 'DELETE',
+      headers: this.getSupabaseHeaders()
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to delete inquiry from Supabase (HTTP ${res.status}): ${errText}`);
+    }
+
+    await this.syncFromSupabase();
   }
 
   async approveTeacherApplicant(applicantId) {
@@ -501,7 +681,7 @@ class DataStore {
     return this.removeUser(applicantId);
   }
 
-  async assignTeacherToStudent(teacherId, studentId) {
+  async assignTeacherToStudent(teacherId, studentId, options = {}) {
     const currentUser = this.getCurrentUser();
     if (!currentUser || currentUser.role !== 'admin') {
       throw new Error('Access denied: Only Administrator can assign teachers to students.');
@@ -510,26 +690,104 @@ class DataStore {
     const teacher = this.data.users.find(u => u.id === teacherId);
     const student = this.data.users.find(u => u.id === studentId);
 
-    if (!teacher || !student) throw new Error('Teacher or Student not found');
+    if (!teacher) throw new Error('Selected tutor not found in directory.');
+    if (!student) throw new Error('Selected student not found in directory.');
 
-    const newAssignment = {
-      id: 'asg_' + Date.now(),
+    // Duplicate assignment prevention
+    const existing = (this.data.assignments || []).find(
+      a => a.teacherId === teacherId && a.studentId === studentId
+    );
+    if (existing) {
+      throw new Error(`Faculty "${teacher.name}" is already assigned to student "${student.name}".`);
+    }
+
+    const asgId = 'asg_' + Date.now();
+    const createdAt = new Date().toISOString();
+
+    // Supabase assignments schema strictly expects: id, teacherId, studentId, createdAt
+    const dbPayload = {
+      id: asgId,
       teacherId,
-      teacherName: teacher.name,
       studentId,
-      studentName: student.name,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString()
+      createdAt
     };
 
-    await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/assignments`, {
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/assignments`, {
       method: 'POST',
       headers: this.getSupabaseHeaders(),
-      body: JSON.stringify(newAssignment)
+      body: JSON.stringify(dbPayload)
     });
 
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to save assignment in database (HTTP ${res.status}): ${errText}`);
+    }
+
+    // Mark matching inquiry as 'assigned' if provided or if one exists
+    if (options && options.inquiryId) {
+      try {
+        await this.updateInquiryStatus(options.inquiryId, 'assigned');
+      } catch (e) {
+        console.warn('Could not update inquiry status:', e);
+      }
+    } else {
+      const matchingInqs = (this.data.inquiries || []).filter(
+        i => i.teacherId === teacherId && i.studentId === studentId && i.status !== 'assigned'
+      );
+      for (const inq of matchingInqs) {
+        try {
+          await this.updateInquiryStatus(inq.id, 'assigned');
+        } catch (e) {
+          console.warn('Could not update matching inquiry status:', e);
+        }
+      }
+    }
+
     await this.syncFromSupabase();
-    return newAssignment;
+    return dbPayload;
+  }
+
+  async removeAssignment(assignmentId) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error('Access denied: Only Administrator can remove assignments.');
+    }
+
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/assignments?id=eq.${encodeURIComponent(assignmentId)}`, {
+      method: 'DELETE',
+      headers: this.getSupabaseHeaders()
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to delete assignment from database (HTTP ${res.status}): ${errText}`);
+    }
+
+    await this.syncFromSupabase();
+  }
+
+  getAllAssignmentsAdmin() {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return [];
+    }
+    return this.data.assignments || [];
+  }
+
+  getStudentInquiriesAdmin() {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return [];
+    }
+    return this.data.studentInquiries || [];
+  }
+
+  getTeacherRequestsAdmin() {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return [];
+    }
+    return this.data.teacherRequests || [];
   }
 
   getAssignmentsForTeacher(teacherId) {

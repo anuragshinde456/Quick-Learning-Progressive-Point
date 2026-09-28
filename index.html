@@ -519,22 +519,39 @@
     </div>
   </div>
 
-  <!-- 4. Student Edit Profile Modal -->
+  <!-- 4a. Student Edit Profile Modal -->
   <div class="modal-overlay" id="student-edit-modal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 540px;">
       <button class="modal-close" onclick="app.closeModal('student-edit-modal')"><i class="fa-solid fa-xmark"></i></button>
-      <h2 class="modal-title">Edit Profile Details</h2>
-      <p class="modal-subtitle">You can update your name, phone number, and profile picture. Username remains fixed.</p>
+      <h2 class="modal-title"><i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Edit Student Profile</h2>
+      <p class="modal-subtitle">Update your learning profile, contact info, grade, and locality across Odisha.</p>
 
       <form id="student-edit-form" onsubmit="app.handleUpdateStudentProfile(event)">
         <div class="form-group">
-          <label class="form-label">Full Name</label>
+          <label class="form-label">Full Name *</label>
           <input type="text" class="form-control" id="edit-std-name" required minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+">
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Phone Number * (10 Digits)</label>
-          <input type="tel" class="form-control" id="edit-std-phone" required maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+          <div class="form-group">
+            <label class="form-label">Phone Number * (10 Digits)</label>
+            <input type="tel" class="form-control" id="edit-std-phone" required maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="edit-std-email" placeholder="student@example.com">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+          <div class="form-group">
+            <label class="form-label">Class / Grade *</label>
+            <input type="text" class="form-control" id="edit-std-grade" required placeholder="e.g. Class 10 (CBSE)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Locality & City in Odisha *</label>
+            <input type="text" class="form-control" id="edit-std-location" required placeholder="e.g. Patia, Bhubaneswar">
+          </div>
         </div>
 
         <div class="form-group">
@@ -553,8 +570,153 @@
           <input type="text" class="form-control" id="edit-std-username" disabled style="opacity: 0.6;">
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-          <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+        <div class="form-group" style="margin-top: 0.5rem; border-top: 1px dashed var(--glass-border); padding-top: 0.85rem;">
+          <label class="form-label" for="edit-std-password">New Password <span style="font-size: 0.76rem; color: var(--text-muted);">(Leave blank to keep unchanged)</span></label>
+          <input type="password" class="form-control" id="edit-std-password" placeholder="Minimum 8 characters with upper, lower, number">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-save-std-profile" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Student Profile
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4b. Teacher Edit Profile Modal -->
+  <div class="modal-overlay" id="teacher-edit-modal">
+    <div class="modal-card" style="max-width: 580px;">
+      <button class="modal-close" onclick="app.closeModal('teacher-edit-modal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 class="modal-title"><i class="fa-solid fa-chalkboard-user" style="color: var(--accent-emerald);"></i> Edit Faculty Profile</h2>
+      <p class="modal-subtitle">Update your home tutoring rate, subjects, teaching experience, and bio across Odisha.</p>
+
+      <form id="teacher-edit-form" onsubmit="app.handleUpdateTeacherProfile(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" class="form-control" id="edit-tch-name" required minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+          <div class="form-group">
+            <label class="form-label">Phone Number * (10 Digits)</label>
+            <input type="tel" class="form-control" id="edit-tch-phone" required maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" id="edit-tch-email" required placeholder="tutor@example.com">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+          <div class="form-group">
+            <label class="form-label">Hourly Rate (₹ / hr) *</label>
+            <input type="number" class="form-control" id="edit-tch-rate" required min="100" max="10000" placeholder="e.g. 500">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teaching Experience *</label>
+            <input type="text" class="form-control" id="edit-tch-experience" required placeholder="e.g. 6 Years, 8+ Years">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">City / Locality in Odisha *</label>
+          <input type="text" class="form-control" id="edit-tch-location" required placeholder="e.g. Saheed Nagar, Bhubaneswar">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subjects Taught * (Comma separated)</label>
+          <input type="text" class="form-control" id="edit-tch-subjects" required placeholder="e.g. Mathematics, Physics, Chemistry">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Demo Video URL (Optional)</label>
+          <input type="url" class="form-control" id="edit-tch-video" placeholder="https://youtube.com/... or Google Drive link">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">About Faculty / Bio</label>
+          <textarea class="form-control" id="edit-tch-bio" rows="3" placeholder="Brief description of your qualifications, teaching methodology, and student mentoring approach..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Profile Picture (Select from device)</label>
+          <div class="file-upload-preview-wrap">
+            <img id="edit-tch-avatar-preview" src="https://ui-avatars.com/api/?name=Faculty&background=059669&color=fff" class="avatar-preview-img" alt="Avatar Preview">
+            <div style="flex: 1;">
+              <input type="file" class="form-control file-input-custom" id="edit-tch-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'edit-tch-avatar-preview', 'edit-tch-avatar-base64')">
+              <input type="hidden" id="edit-tch-avatar-base64" value="">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username (Read-only)</label>
+          <input type="text" class="form-control" id="edit-tch-username" disabled style="opacity: 0.6;">
+        </div>
+
+        <div class="form-group" style="margin-top: 0.5rem; border-top: 1px dashed var(--glass-border); padding-top: 0.85rem;">
+          <label class="form-label" for="edit-tch-password">New Password <span style="font-size: 0.76rem; color: var(--text-muted);">(Leave blank to keep unchanged)</span></label>
+          <input type="password" class="form-control" id="edit-tch-password" placeholder="Minimum 8 characters with upper, lower, number">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-save-tch-profile" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Faculty Profile
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4c. Admin Edit Profile Modal -->
+  <div class="modal-overlay" id="admin-edit-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <button class="modal-close" onclick="app.closeModal('admin-edit-modal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 class="modal-title"><i class="fa-solid fa-user-gear" style="color: var(--accent-rose);"></i> Edit Administrator Profile</h2>
+      <p class="modal-subtitle">Update official QPCP Odisha HQ administrative contact information and display details.</p>
+
+      <form id="admin-edit-form" onsubmit="app.handleUpdateAdminProfile(event)">
+        <div class="form-group">
+          <label class="form-label">Administrator Name / Title *</label>
+          <input type="text" class="form-control" id="edit-adm-name" required minlength="2" maxlength="50">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+          <div class="form-group">
+            <label class="form-label">Official Hotline / Phone *</label>
+            <input type="tel" class="form-control" id="edit-adm-phone" required placeholder="+91 70082 21300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Official Email *</label>
+            <input type="email" class="form-control" id="edit-adm-email" required placeholder="admin@quickprogressive.edu.in">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">HQ Office Location</label>
+          <input type="text" class="form-control" id="edit-adm-location" placeholder="e.g. Master Canteen, Bhubaneswar, Odisha">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Profile Picture / Seal (Select from device)</label>
+          <div class="file-upload-preview-wrap">
+            <img id="edit-adm-avatar-preview" src="https://ui-avatars.com/api/?name=Admin&background=e11d48&color=fff" class="avatar-preview-img" alt="Avatar Preview">
+            <div style="flex: 1;">
+              <input type="file" class="form-control file-input-custom" id="edit-adm-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'edit-adm-avatar-preview', 'edit-adm-avatar-base64')">
+              <input type="hidden" id="edit-adm-avatar-base64" value="">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username (Read-only)</label>
+          <input type="text" class="form-control" id="edit-adm-username" disabled style="opacity: 0.6;">
+        </div>
+
+        <div class="form-group" style="margin-top: 0.5rem; border-top: 1px dashed var(--glass-border); padding-top: 0.85rem;">
+          <label class="form-label" for="edit-adm-password">New Password <span style="font-size: 0.76rem; color: var(--text-muted);">(Leave blank to keep unchanged)</span></label>
+          <input type="password" class="form-control" id="edit-adm-password" placeholder="Minimum 8 characters with upper, lower, number">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-save-adm-profile" style="width: 100%; margin-top: 1rem;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Admin Profile
         </button>
       </form>
     </div>
@@ -888,7 +1050,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- JavaScript Scripts -->
-  <script type="module" src="store.js?v=20260925_optionaldesc"></script>
-  <script type="module" src="app.js?v=20260925_optionaldesc"></script>
+  <script type="module" src="store.js?v=20260928_profile_v1"></script>
+  <script type="module" src="app.js?v=20260928_profile_v1"></script>
 </body>
 </html>
