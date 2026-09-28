@@ -61,6 +61,16 @@ class AppController {
 
     if (!this.syncInterval) {
       this.syncInterval = setInterval(async () => {
+        // Do not interrupt the user if they are currently typing in any input or textarea
+        const activeEl = document.activeElement;
+        const isUserTyping = activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName);
+        if (isUserTyping) return;
+
+        // Do not re-render if user is on an active profile editing tab or has a modal open
+        const isEditingProfile = this.adminActiveTab === 'profile' || this.studentActiveTab === 'profile' || this.teacherActiveTab === 'profile';
+        const isModalOpen = !!document.querySelector('.modal-overlay.active');
+        if (isEditingProfile || isModalOpen) return;
+
         const changed = await store.syncFromSupabase();
         if (changed) {
           console.log('⚡ Cross-device live data update synced from Supabase!');
@@ -70,7 +80,7 @@ class AppController {
             this.renderMainView();
           }
         }
-      }, 3000);
+      }, 15000);
     }
   }
 

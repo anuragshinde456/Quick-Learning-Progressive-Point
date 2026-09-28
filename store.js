@@ -151,29 +151,35 @@ class DataStore {
         if (!u.subjects) u.subjects = [];
       });
 
-      this.data.users = regularUsers;
-      this.data.admins = regularUsers.filter(u => u.role === 'admin');
-      this.data.teachers = regularUsers.filter(u => u.role === 'verified_teacher');
-      this.data.teacherApplicants = regularUsers.filter(u => u.role === 'teacher_applicant');
-      this.data.students = regularUsers.filter(u => u.role === 'student');
-      hasChanged = true;
+      const prevUsersStr = JSON.stringify(this.data.users || []);
+      const newUsersStr = JSON.stringify(regularUsers);
+      if (prevUsersStr !== newUsersStr) {
+        this.data.users = regularUsers;
+        this.data.admins = regularUsers.filter(u => u.role === 'admin');
+        this.data.teachers = regularUsers.filter(u => u.role === 'verified_teacher');
+        this.data.teacherApplicants = regularUsers.filter(u => u.role === 'teacher_applicant');
+        this.data.students = regularUsers.filter(u => u.role === 'student');
+        hasChanged = true;
+      }
     }
 
     if (inquiries && Array.isArray(inquiries)) {
-      this.data.inquiries = inquiries;
-      // Derive teacher requests to teach students from inquiries
-      this.data.teacherRequests = inquiries.filter(i => 
-        i.subject === 'Teacher Request to Teach' || (i.id && i.id.startsWith('inq_tr_'))
-      );
-      // Student applications for verified tutors
-      this.data.studentInquiries = inquiries.filter(i => 
-        i.subject !== 'Teacher Request to Teach' && !(i.id && i.id.startsWith('inq_tr_'))
-      );
-      hasChanged = true;
+      const prevInqsStr = JSON.stringify(this.data.inquiries || []);
+      const newInqsStr = JSON.stringify(inquiries);
+      if (prevInqsStr !== newInqsStr) {
+        this.data.inquiries = inquiries;
+        this.data.teacherRequests = inquiries.filter(i => 
+          i.subject === 'Teacher Request to Teach' || (i.id && i.id.startsWith('inq_tr_'))
+        );
+        this.data.studentInquiries = inquiries.filter(i => 
+          i.subject !== 'Teacher Request to Teach' && !(i.id && i.id.startsWith('inq_tr_'))
+        );
+        hasChanged = true;
+      }
     }
 
     if (assignments && Array.isArray(assignments)) {
-      this.data.assignments = assignments.map(a => {
+      const enrichedAssignments = assignments.map(a => {
         const teacher = (this.data.users || []).find(u => u.id === a.teacherId);
         const student = (this.data.users || []).find(u => u.id === a.studentId);
         return {
@@ -198,7 +204,13 @@ class DataStore {
           studentAvatar: student ? (student.avatar || '') : ''
         };
       });
-      hasChanged = true;
+
+      const prevAsgStr = JSON.stringify(this.data.assignments || []);
+      const newAsgStr = JSON.stringify(enrichedAssignments);
+      if (prevAsgStr !== newAsgStr) {
+        this.data.assignments = enrichedAssignments;
+        hasChanged = true;
+      }
     }
 
     // Keep currentUser in sync with DB state
