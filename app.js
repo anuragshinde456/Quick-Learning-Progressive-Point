@@ -1217,7 +1217,7 @@ class AppController {
             <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
               <div class="form-group">
                 <label class="form-label" for="student-inline-phone">Phone / WhatsApp <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-                <input type="tel" class="form-control" id="student-inline-phone" value="${user.phone || ''}" required placeholder="10-digit number" pattern="[0-9]{10}">
+                <input type="tel" class="form-control" id="student-inline-phone" value="${user.phone || ''}" required placeholder="e.g. +91 70082 21300 or 10-digit number">
               </div>
               <div class="form-group">
                 <label class="form-label" for="student-inline-email">Email Address <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
@@ -2181,7 +2181,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
             <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
               <div class="form-group">
                 <label class="form-label" for="teacher-inline-phone">Phone / WhatsApp <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-                <input type="tel" class="form-control" id="teacher-inline-phone" value="${user.phone || ''}" required placeholder="10-digit number" pattern="[0-9]{10}">
+                <input type="tel" class="form-control" id="teacher-inline-phone" value="${user.phone || ''}" required placeholder="e.g. +91 70082 21300 or 10-digit number">
               </div>
               <div class="form-group">
                 <label class="form-label" for="teacher-inline-email">Email Address <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
@@ -2897,7 +2897,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
             <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
               <div class="form-group">
                 <label class="form-label" for="admin-inline-phone">Official Phone / Contact <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-                <input type="tel" class="form-control" id="admin-inline-phone" value="${user.phone || ''}" required placeholder="10-digit phone number" pattern="[0-9]{10}">
+                <input type="tel" class="form-control" id="admin-inline-phone" value="${user.phone || ''}" required placeholder="e.g. +91 70082 21300 or 10-digit number">
               </div>
               <div class="form-group">
                 <label class="form-label" for="admin-inline-email">Official Email <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
