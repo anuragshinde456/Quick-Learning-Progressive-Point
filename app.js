@@ -4,7 +4,7 @@
  * Cities & Districts Covered: Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore, Puri & all 30 Districts
  */
 
-import { store } from './store.js?v=20260925_about1';
+import { store } from './store.js?v=20260929_v2';
 
 class AppController {
   constructor() {
@@ -49,7 +49,7 @@ class AppController {
           if (e.target.id === 'force-password-reset-modal' || e.target.getAttribute('data-prevent-close') === 'true') {
             return;
           }
-          this.closeAllModals();
+          this.closeModal(e.target.id);
         }
       });
       window.addEventListener('keydown', (e) => {
@@ -57,7 +57,11 @@ class AppController {
           if (store.isPasswordResetRequired(store.getCurrentUser())) {
             return;
           }
-          this.closeAllModals();
+          const activeModals = Array.from(document.querySelectorAll('.modal-overlay.active'));
+          const topModal = activeModals[activeModals.length - 1];
+          if (topModal && topModal.getAttribute('data-prevent-close') !== 'true') {
+            this.closeModal(topModal.id);
+          }
         }
       });
       this.modalListenersAttached = true;
@@ -75,16 +79,17 @@ class AppController {
         const isUserTyping = activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName);
         if (isUserTyping) return;
 
-        // Do not re-render if user is on an active profile editing tab or has a modal open
+        // Do not re-render if user is on an active profile editing tab, registration page, or has a modal open
         const isEditingProfile = this.adminActiveTab === 'profile' || this.studentActiveTab === 'profile' || this.teacherActiveTab === 'profile';
         const isModalOpen = !!document.querySelector('.modal-overlay.active');
-        if (isEditingProfile || isModalOpen) return;
+        const p = window.location.pathname;
+        const isAuthRoute = ['/student/login', '/student/signup', '/student/register', '/teacher/login', '/teacher/signup', '/teacher/register'].includes(p);
+        if (isEditingProfile || isModalOpen || isAuthRoute) return;
 
         const changed = await store.syncFromSupabase();
         if (changed) {
           console.log('⚡ Cross-device live data update synced from Supabase!');
           this.renderHeader();
-          const p = window.location.pathname;
           if (p === '/' || p === '/home' || p === '/gallery' || p.startsWith('/admin') || p.startsWith('/student') || p.startsWith('/teacher')) {
             this.renderMainView();
           }
@@ -181,17 +186,128 @@ class AppController {
     }
   }
 
+  // --- Registration Draft Auto-Save & Recovery (Prevents Lost Form Data on Refresh / Mobile Camera) ---
+  saveStudentRegDraft() {
+    const draft = {
+      name: document.getElementById('std-reg-name')?.value || '',
+      username: document.getElementById('std-reg-username')?.value || '',
+      phone: document.getElementById('std-reg-phone')?.value || '',
+      email: document.getElementById('std-reg-email')?.value || '',
+      grade: document.getElementById('std-reg-grade')?.value || '',
+      location: document.getElementById('std-reg-location')?.value || '',
+    };
+    try { sessionStorage.setItem('qpcp_std_reg_draft', JSON.stringify(draft)); } catch(_) {}
+  }
+
+  restoreStudentRegDraft() {
+    try {
+      const raw = sessionStorage.getItem('qpcp_std_reg_draft');
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.name && document.getElementById('std-reg-name')) document.getElementById('std-reg-name').value = draft.name;
+      if (draft.username && document.getElementById('std-reg-username')) document.getElementById('std-reg-username').value = draft.username;
+      if (draft.phone && document.getElementById('std-reg-phone')) document.getElementById('std-reg-phone').value = draft.phone;
+      if (draft.email && document.getElementById('std-reg-email')) document.getElementById('std-reg-email').value = draft.email;
+      if (draft.grade && document.getElementById('std-reg-grade')) document.getElementById('std-reg-grade').value = draft.grade;
+      if (draft.location && document.getElementById('std-reg-location')) document.getElementById('std-reg-location').value = draft.location;
+    } catch(_) {}
+  }
+
+  clearStudentRegDraft() {
+    try { sessionStorage.removeItem('qpcp_std_reg_draft'); } catch(_) {}
+  }
+
+  saveTeacherRegDraft() {
+    const draft = {
+      name: document.getElementById('tch-reg-name')?.value || '',
+      username: document.getElementById('tch-reg-username')?.value || '',
+      phone: document.getElementById('tch-reg-phone')?.value || '',
+      email: document.getElementById('tch-reg-email')?.value || '',
+      subjects: document.getElementById('tch-reg-subjects')?.value || '',
+      rate: document.getElementById('tch-reg-rate')?.value || '',
+      experience: document.getElementById('tch-reg-experience')?.value || '',
+      location: document.getElementById('tch-reg-location')?.value || '',
+      video: document.getElementById('tch-reg-video')?.value || '',
+      bio: document.getElementById('tch-reg-bio')?.value || '',
+    };
+    try { sessionStorage.setItem('qpcp_tch_reg_draft', JSON.stringify(draft)); } catch(_) {}
+  }
+
+  restoreTeacherRegDraft() {
+    try {
+      const raw = sessionStorage.getItem('qpcp_tch_reg_draft');
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.name && document.getElementById('tch-reg-name')) document.getElementById('tch-reg-name').value = draft.name;
+      if (draft.username && document.getElementById('tch-reg-username')) document.getElementById('tch-reg-username').value = draft.username;
+      if (draft.phone && document.getElementById('tch-reg-phone')) document.getElementById('tch-reg-phone').value = draft.phone;
+      if (draft.email && document.getElementById('tch-reg-email')) document.getElementById('tch-reg-email').value = draft.email;
+      if (draft.subjects && document.getElementById('tch-reg-subjects')) document.getElementById('tch-reg-subjects').value = draft.subjects;
+      if (draft.rate && document.getElementById('tch-reg-rate')) document.getElementById('tch-reg-rate').value = draft.rate;
+      if (draft.experience && document.getElementById('tch-reg-experience')) document.getElementById('tch-reg-experience').value = draft.experience;
+      if (draft.location && document.getElementById('tch-reg-location')) document.getElementById('tch-reg-location').value = draft.location;
+      if (draft.video && document.getElementById('tch-reg-video')) document.getElementById('tch-reg-video').value = draft.video;
+      if (draft.bio && document.getElementById('tch-reg-bio')) document.getElementById('tch-reg-bio').value = draft.bio;
+    } catch(_) {}
+  }
+
+  clearTeacherRegDraft() {
+    try { sessionStorage.removeItem('qpcp_tch_reg_draft'); } catch(_) {}
+  }
+
+  attachRegistrationDraftListeners() {
+    const stdForm = document.getElementById('student-signup-form');
+    if (stdForm && !stdForm._draftAttached) {
+      stdForm.addEventListener('input', () => this.saveStudentRegDraft());
+      stdForm._draftAttached = true;
+    }
+    const tchForm = document.getElementById('teacher-signup-form');
+    if (tchForm && !tchForm._draftAttached) {
+      tchForm.addEventListener('input', () => this.saveTeacherRegDraft());
+      tchForm._draftAttached = true;
+    }
+  }
+
   openStudentAuth(tab = 'login') {
+    const user = store.getCurrentUser();
+    if (user) {
+      if (user.role === 'admin') this.navigateTo('/admin/dashboard');
+      else if (user.role === 'student') this.navigateTo('/student/dashboard');
+      else if (user.role === 'teacher_applicant') this.navigateTo('/teacher/status');
+      else if (user.role === 'verified_teacher') this.navigateTo('/teacher/dashboard');
+      return;
+    }
     this.switchAuthTab('student', tab);
     this.openModal('student-auth-modal');
+    this.attachRegistrationDraftListeners();
+    if (tab === 'signup') {
+      this.restoreStudentRegDraft();
+    }
   }
 
   openTeacherAuth(tab = 'login') {
+    const user = store.getCurrentUser();
+    if (user) {
+      if (user.role === 'admin') this.navigateTo('/admin/dashboard');
+      else if (user.role === 'teacher_applicant') this.navigateTo('/teacher/status');
+      else if (user.role === 'verified_teacher') this.navigateTo('/teacher/dashboard');
+      else if (user.role === 'student') this.navigateTo('/student/dashboard');
+      return;
+    }
     this.switchAuthTab('teacher', tab);
     this.openModal('teacher-auth-modal');
+    this.attachRegistrationDraftListeners();
+    if (tab === 'signup') {
+      this.restoreTeacherRegDraft();
+    }
   }
 
   openAdminAuth() {
+    const user = store.getCurrentUser();
+    if (user && user.role === 'admin') {
+      this.navigateTo('/admin/dashboard');
+      return;
+    }
     this.openModal('admin-auth-modal');
   }
 
@@ -583,6 +699,7 @@ class AppController {
     const user = store.getCurrentUser();
     this.updatePageTitle(cleanPath);
     this.updateActiveNavLinks(cleanPath);
+    this.renderHeader();
 
     // Close any leftover open modals when navigating to content views
     const isAuthRoute = [
@@ -641,25 +758,48 @@ class AppController {
     }
 
     // 2. Auth Modal Routes
-    if (cleanPath === '/student/login') {
-      this.openStudentAuth('login');
-      return;
-    }
-    if (cleanPath === '/student/signup' || cleanPath === '/student/register') {
-      this.openStudentAuth('signup');
-      return;
-    }
-    if (cleanPath === '/teacher/login') {
-      this.openTeacherAuth('login');
-      return;
-    }
-    if (cleanPath === '/teacher/signup' || cleanPath === '/teacher/register') {
-      this.openTeacherAuth('signup');
-      return;
-    }
-    if (cleanPath === '/admin/login' || cleanPath === '/admin/auth') {
-      this.openAdminAuth();
-      return;
+    const authRoutes = [
+      '/student/login', '/student/signup', '/student/register',
+      '/teacher/login', '/teacher/signup', '/teacher/register',
+      '/admin/login', '/admin/auth'
+    ];
+    if (authRoutes.includes(cleanPath)) {
+      if (user) {
+        this.closeAllModals();
+        if (user.role === 'admin') {
+          this.navigateTo('/admin/dashboard');
+        } else if (user.role === 'student') {
+          this.navigateTo('/student/dashboard');
+        } else if (user.role === 'teacher_applicant') {
+          this.navigateTo('/teacher/status');
+        } else if (user.role === 'verified_teacher') {
+          this.navigateTo('/teacher/dashboard');
+        } else {
+          this.navigateTo('/');
+        }
+        return;
+      }
+
+      if (cleanPath === '/student/login') {
+        this.openStudentAuth('login');
+        return;
+      }
+      if (cleanPath === '/student/signup' || cleanPath === '/student/register') {
+        this.openStudentAuth('signup');
+        return;
+      }
+      if (cleanPath === '/teacher/login') {
+        this.openTeacherAuth('login');
+        return;
+      }
+      if (cleanPath === '/teacher/signup' || cleanPath === '/teacher/register') {
+        this.openTeacherAuth('signup');
+        return;
+      }
+      if (cleanPath === '/admin/login' || cleanPath === '/admin/auth') {
+        this.openAdminAuth();
+        return;
+      }
     }
 
     // 3. Admin Command Center Modules & Submodules
@@ -848,6 +988,7 @@ class AppController {
 
   handleLogout() {
     store.logout();
+    this.renderHeader();
     this.showToast('You have been logged out.', 'info');
     this.navigateTo('/');
   }
@@ -3669,13 +3810,23 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
   // --- Auth & Form Handlers ---
   async handleStudentLogin(e) {
     e.preventDefault();
-    const u = document.getElementById('std-login-user').value;
-    const p = document.getElementById('std-login-pass').value;
+    const u = (document.getElementById('std-login-user')?.value || '').trim();
+    const p = (document.getElementById('std-login-pass')?.value || '').trim();
+
+    if (!u) {
+      this.showToast('Please enter your username, email, or 10-digit mobile number.', 'warning');
+      return;
+    }
+    if (!p) {
+      this.showToast('Please enter your password.', 'warning');
+      return;
+    }
 
     try {
       const user = await store.login(u, p, 'student');
       this.closeModal('student-auth-modal');
       this.closeAllModals();
+      this.renderHeader();
 
       if (store.isPasswordResetRequired(user)) {
         this.openForcedPasswordResetModal(user);
@@ -3706,9 +3857,9 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       return;
     }
 
-    const username = document.getElementById('std-reg-username').value;
-    const phone = document.getElementById('std-reg-phone').value;
-    const pass = document.getElementById('std-reg-pass').value;
+    const username = (document.getElementById('std-reg-username')?.value || '').trim();
+    const phone = (document.getElementById('std-reg-phone')?.value || '').trim();
+    const pass = (document.getElementById('std-reg-pass')?.value || '').trim();
 
     const userCheck = this.validateUsername(username);
     if (!userCheck.valid) {
@@ -3728,17 +3879,17 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       return;
     }
 
-    const base64Avatar = document.getElementById('std-reg-avatar-base64').value;
-    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(document.getElementById('std-reg-name').value)}&background=2563eb&color=fff`;
+    const base64Avatar = document.getElementById('std-reg-avatar-base64')?.value || '';
+    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(document.getElementById('std-reg-name')?.value || 'Student')}&background=2563eb&color=fff`;
 
     const data = {
-      name: document.getElementById('std-reg-name').value,
+      name: (document.getElementById('std-reg-name')?.value || '').trim(),
       username,
       phone: `+91 ${phone.replace(/[^0-9]/g, '')}`,
-      email: document.getElementById('std-reg-email').value,
+      email: (document.getElementById('std-reg-email')?.value || '').trim(),
       password: pass,
-      grade: document.getElementById('std-reg-grade').value,
-      location: document.getElementById('std-reg-location').value,
+      grade: (document.getElementById('std-reg-grade')?.value || '').trim(),
+      location: (document.getElementById('std-reg-location')?.value || '').trim(),
       avatar: base64Avatar || defaultAvatar,
       privacyConsent: true,
       dpdpConsent: true
@@ -3746,9 +3897,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
     try {
       await store.registerStudent(data);
+      this.clearStudentRegDraft();
       this.closeModal('student-auth-modal');
+      this.closeAllModals();
+      this.renderHeader();
       this.showToast('Student registered & logged in!', 'success');
-      this.init();
+      this.navigateTo('/student/dashboard');
     } catch (err) {
       this.showToast(err.message, 'error');
     }
@@ -3758,13 +3912,23 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     e.preventDefault();
     const userField = document.getElementById('tch-login-user');
     const passField = document.getElementById('tch-login-pass');
-    const u = userField ? userField.value : '';
-    const p = passField ? passField.value : '';
+    const u = (userField ? userField.value : '').trim();
+    const p = (passField ? passField.value : '').trim();
+
+    if (!u) {
+      this.showToast('Please enter your username, email, or 10-digit mobile number.', 'warning');
+      return;
+    }
+    if (!p) {
+      this.showToast('Please enter your password.', 'warning');
+      return;
+    }
 
     try {
       const user = await store.login(u, p, 'teacher');
       this.closeModal('teacher-auth-modal');
       this.closeAllModals();
+      this.renderHeader();
       if (passField) passField.value = '';
 
       if (store.isPasswordResetRequired(user)) {
@@ -3799,9 +3963,9 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       return;
     }
 
-    const username = document.getElementById('tch-reg-username').value;
-    const phone = document.getElementById('tch-reg-phone').value;
-    const pass = document.getElementById('tch-reg-pass').value;
+    const username = (document.getElementById('tch-reg-username')?.value || '').trim();
+    const phone = (document.getElementById('tch-reg-phone')?.value || '').trim();
+    const pass = (document.getElementById('tch-reg-pass')?.value || '').trim();
 
     const userCheck = this.validateUsername(username);
     if (!userCheck.valid) {
@@ -3821,20 +3985,20 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       return;
     }
 
-    const base64Avatar = document.getElementById('tch-reg-avatar-base64').value;
-    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(document.getElementById('tch-reg-name').value)}&background=2563eb&color=fff`;
+    const base64Avatar = document.getElementById('tch-reg-avatar-base64')?.value || '';
+    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(document.getElementById('tch-reg-name')?.value || 'Faculty')}&background=2563eb&color=fff`;
 
     const data = {
-      name: document.getElementById('tch-reg-name').value,
+      name: (document.getElementById('tch-reg-name')?.value || '').trim(),
       username,
       phone: `+91 ${phone.replace(/[^0-9]/g, '')}`,
-      email: document.getElementById('tch-reg-email').value,
-      subjects: document.getElementById('tch-reg-subjects').value,
-      rate: document.getElementById('tch-reg-rate').value,
-      experience: document.getElementById('tch-reg-experience').value,
-      location: document.getElementById('tch-reg-location').value,
-      videoUrl: document.getElementById('tch-reg-video').value,
-      bio: document.getElementById('tch-reg-bio').value,
+      email: (document.getElementById('tch-reg-email')?.value || '').trim(),
+      subjects: (document.getElementById('tch-reg-subjects')?.value || '').trim(),
+      rate: (document.getElementById('tch-reg-rate')?.value || '').trim(),
+      experience: (document.getElementById('tch-reg-experience')?.value || '').trim(),
+      location: (document.getElementById('tch-reg-location')?.value || '').trim(),
+      videoUrl: (document.getElementById('tch-reg-video')?.value || '').trim(),
+      bio: (document.getElementById('tch-reg-bio')?.value || '').trim(),
       cvUrl: document.getElementById('tch-reg-cv-base64') ? document.getElementById('tch-reg-cv-base64').value : '',
       password: pass,
       avatar: base64Avatar || defaultAvatar,
@@ -3844,9 +4008,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
     try {
       await store.registerTeacher(data);
+      this.clearTeacherRegDraft();
       this.closeModal('teacher-auth-modal');
+      this.closeAllModals();
+      this.renderHeader();
       this.showToast('Home tutor application submitted! Under admin review.', 'info');
-      this.init();
+      this.navigateTo('/teacher/status');
     } catch (err) {
       this.showToast(err.message, 'error');
     }
@@ -3854,13 +4021,14 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
   async handleAdminLogin(e) {
     e.preventDefault();
-    const u = document.getElementById('adm-login-user').value;
-    const p = document.getElementById('adm-login-pass').value;
+    const u = (document.getElementById('adm-login-user')?.value || '').trim();
+    const p = (document.getElementById('adm-login-pass')?.value || '').trim();
 
     try {
       const user = await store.login(u, p, 'admin');
       this.closeModal('admin-auth-modal');
       this.closeAllModals();
+      this.renderHeader();
 
       if (store.isPasswordResetRequired(user)) {
         this.openForcedPasswordResetModal(user);
