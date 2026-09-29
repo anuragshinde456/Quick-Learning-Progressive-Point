@@ -4,7 +4,7 @@
  * Cities & Districts Covered: Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore, Puri & all 30 Districts
  */
 
-import { store } from './store.js?v=20260929_v2';
+import { store } from './store.js?v=20260929_mobileroute1';
 
 class AppController {
   constructor() {
@@ -21,7 +21,8 @@ class AppController {
   }
 
   async init() {
-    let initialPath = window.location.pathname;
+    let initialPath = window.__pendingPath || window.location.pathname;
+    window.__pendingPath = null;
     if (window.location.hash) {
       const rawHash = window.location.hash.replace(/^[#/]+/, '');
       if (rawHash === 'about' || rawHash === 'about-us') initialPath = '/about-us';
@@ -67,10 +68,25 @@ class AppController {
       this.modalListenersAttached = true;
     }
 
-    this.renderHeader();
-    await store.syncFromSupabase();
+    this.attachGlobalLinkInterceptor();
+
+    // 1. Immediately render header and route to requested path (0ms instant display)
     this.renderHeader();
     this.route(initialPath);
+
+    // 2. Perform background Supabase sync without blocking the current page view
+    try {
+      const changed = await store.syncFromSupabase();
+      if (changed) {
+        this.renderHeader();
+        const p = this.normalizePath(window.location.pathname);
+        if (p === '/' || p === '/home' || p === '/gallery' || p.startsWith('/admin') || p.startsWith('/student') || p.startsWith('/teacher')) {
+          this.renderMainView();
+        }
+      }
+    } catch (err) {
+      console.warn('Initial Supabase sync note:', err);
+    }
 
     if (!this.syncInterval) {
       this.syncInterval = setInterval(async () => {
@@ -123,7 +139,14 @@ class AppController {
   // --- Modal Helpers ---
   openModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add('active');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.classList.add('modal-open');
+      const card = modal.querySelector('.modal-card');
+      if (card) {
+        card.scrollTop = 0;
+      }
+    }
   }
 
   closeModal(modalId) {
@@ -131,7 +154,13 @@ class AppController {
       return;
     }
     const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    const activeModals = document.querySelectorAll('.modal-overlay.active');
+    if (!activeModals || activeModals.length === 0) {
+      document.body.classList.remove('modal-open');
+    }
   }
 
   closeAllModals() {
@@ -155,6 +184,7 @@ class AppController {
           el.classList.remove('active');
         }
       });
+      document.body.classList.remove('modal-open');
     }
   }
 
@@ -627,9 +657,46 @@ class AppController {
     return p;
   }
 
-  navigateTo(path = '/', e = null) {
-    if (e && typeof e.preventDefault === 'function') {
+  attachGlobalLinkInterceptor() {
+    if (this.globalLinkInterceptorAttached) return;
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (!link) return;
+
+      const href = link.getAttribute('href');
+      if (!href) return;
+
+      if (
+        link.target === '_blank' ||
+        link.getAttribute('target') === '_blank' ||
+        link.hasAttribute('download') ||
+        href.startsWith('http://') ||
+        href.startsWith('https://') ||
+        href.startsWith('mailto:') ||
+        href.startsWith('tel:') ||
+        href.startsWith('javascript:') ||
+        href.startsWith('#')
+      ) {
+        return;
+      }
+
       e.preventDefault();
+      e.stopPropagation();
+
+      const drawer = document.getElementById('mobile-drawer');
+      if (drawer && drawer.classList.contains('active')) {
+        this.toggleMobileMenu();
+      }
+
+      this.navigateTo(href);
+    }, true);
+    this.globalLinkInterceptorAttached = true;
+  }
+
+  navigateTo(path = '/', e = null) {
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
     }
     const cleanPath = this.normalizePath(path);
     try {
@@ -2589,7 +2656,8 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       `;
     } else if (this.adminActiveTab === 'teachers') {
       container.innerHTML = `
-        <h2 style="font-size: 1.35rem; margin-bottom: 1.25rem;">Active Verified Home Faculty (Odisha)</h2>
+        <h2 style="font-size: 1.35rem; margin-bottom: 0.65rem;">Active Verified Home Faculty (Odisha)</h2>
+        <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Scroll sideways to view all faculty details & actions</div>
         <div class="data-table-wrap">
           <table class="data-table">
             <thead>
@@ -2632,7 +2700,8 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       `;
     } else if (this.adminActiveTab === 'students') {
       container.innerHTML = `
-        <h2 style="font-size: 1.35rem; margin-bottom: 1.25rem;">Registered Student Directory (Full Admin View)</h2>
+        <h2 style="font-size: 1.35rem; margin-bottom: 0.65rem;">Registered Student Directory (Full Admin View)</h2>
+        <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Scroll sideways to view all registered students</div>
         <div class="data-table-wrap">
           <table class="data-table">
             <thead>
@@ -2698,6 +2767,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
               <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">When registered students apply for home faculty from the portal, inquiries will appear here.</p>
             </div>
           ` : `
+            <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Scroll sideways to view all inquiry details</div>
             <div class="data-table-wrap">
               <table class="data-table">
                 <thead>
@@ -2785,6 +2855,7 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
               <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">When verified teachers apply to teach registered students in Odisha, requests will appear here.</p>
             </div>
           ` : `
+            <div class="table-scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Scroll sideways to view all faculty requests</div>
             <div class="data-table-wrap">
               <table class="data-table">
                 <thead>
@@ -4503,7 +4574,11 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
 
 export const app = new AppController();
 window.app = app;
+window.navigateTo = (path, e) => app.navigateTo(path, e);
+window.openPrivacyModal = (type) => app.openPrivacyModal(type);
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => app.init());
+} else {
   app.init();
-});
+}

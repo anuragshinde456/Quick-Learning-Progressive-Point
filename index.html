@@ -10,6 +10,34 @@
   <title>Quick Progressive Career Point - Premier Home Tutoring Across Odisha</title>
   <meta name="description" content="Quick Progressive Career Point connects verified expert home tutors across Odisha (Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur) with students for 1-on-1 personalized learning.">
   
+  <!-- Universal Instant SPA Route Interceptor (Guarantees zero native GET requests or full-page reloads) -->
+  <script>
+    window.__pendingPath = null;
+    window.navigateTo = function(path, e) {
+      if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
+      if (window.app && typeof window.app.navigateTo === 'function') {
+        window.app.navigateTo(path, e);
+      } else {
+        window.__pendingPath = path;
+        try {
+          if (window.location.pathname !== path) {
+            history.pushState(null, '', path);
+          }
+        } catch (_) {}
+      }
+      return false;
+    };
+    window.openPrivacyModal = function(type) {
+      if (window.app && typeof window.app.openPrivacyModal === 'function') {
+        window.app.openPrivacyModal(type);
+      }
+      return false;
+    };
+  </script>
+
   <!-- Favicon (Google Search & Mobile Compliant) -->
   <link rel="icon" type="image/png" href="https://qpcp.in/assets/logo.png">
   <link rel="shortcut icon" href="https://qpcp.in/favicon.ico">
@@ -22,14 +50,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20260925_cleanurl1">
+  <link rel="stylesheet" href="styles.css?v=20260929_mobileroute1">
 </head>
 <body>
 
   <!-- Header Navigation -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/" class="brand-logo" onclick="app.navigateTo('/', event)">
+      <a href="/" class="brand-logo" onclick="window.navigateTo('/', event); return false;">
         <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
         <div class="brand-title">
           Quick Progressive <span>Career Point</span>
@@ -37,16 +65,16 @@
       </a>
 
       <ul class="nav-links desktop-only">
-        <li><a href="/" class="nav-link active" data-path="/" onclick="app.navigateTo('/', event)">Home</a></li>
-        <li><a href="/about-us" class="nav-link" data-path="/about-us" onclick="app.navigateTo('/about-us', event)">About Us</a></li>
-        <li><a href="/gallery" class="nav-link" data-path="/gallery" onclick="app.navigateTo('/gallery', event)">Gallery</a></li>
+        <li><a href="/" class="nav-link active" data-path="/" onclick="window.navigateTo('/', event); return false;">Home</a></li>
+        <li><a href="/about-us" class="nav-link" data-path="/about-us" onclick="window.navigateTo('/about-us', event); return false;">About Us</a></li>
+        <li><a href="/gallery" class="nav-link" data-path="/gallery" onclick="window.navigateTo('/gallery', event); return false;">Gallery</a></li>
       </ul>
 
       <div class="auth-buttons desktop-only" id="nav-auth-container">
         <!-- Dynamic Header Actions filled by app.js -->
       </div>
 
-      <button class="mobile-menu-btn" onclick="app.toggleMobileMenu()" aria-label="Toggle Navigation">
+      <button class="mobile-menu-btn" onclick="if(window.app)app.toggleMobileMenu()" aria-label="Toggle Navigation" type="button">
         <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
       </button>
     </div>
@@ -54,9 +82,9 @@
     <!-- Mobile Navigation Drawer -->
     <div class="mobile-drawer" id="mobile-drawer">
       <ul class="mobile-nav-links">
-        <li><a href="/" class="mobile-nav-link" data-path="/" onclick="app.navigateTo('/', event); app.toggleMobileMenu();"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
-        <li><a href="/about-us" class="mobile-nav-link" data-path="/about-us" onclick="app.navigateTo('/about-us', event); app.toggleMobileMenu();"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
-        <li><a href="/gallery" class="mobile-nav-link" data-path="/gallery" onclick="app.navigateTo('/gallery', event); app.toggleMobileMenu();"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+        <li><a href="/" class="mobile-nav-link" data-path="/" onclick="window.navigateTo('/', event); if(window.app)app.toggleMobileMenu(); return false;"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="/about-us" class="mobile-nav-link" data-path="/about-us" onclick="window.navigateTo('/about-us', event); if(window.app)app.toggleMobileMenu(); return false;"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="/gallery" class="mobile-nav-link" data-path="/gallery" onclick="window.navigateTo('/gallery', event); if(window.app)app.toggleMobileMenu(); return false;"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
       </ul>
       <div class="mobile-auth-container" id="mobile-auth-container">
         <!-- Filled dynamically by app.js -->
@@ -66,7 +94,19 @@
 
   <!-- Dynamic Page Content Root -->
   <main id="app-root">
-    
+    <script>
+      (function() {
+        var p = (window.__pendingPath || window.location.pathname).replace(/\/$/, '') || '/';
+        if (window.location.hash) {
+          var h = window.location.hash.replace(/^[#/]+/, '');
+          if (h) p = '/' + h;
+        }
+        if (p !== '/' && p !== '/home' && p !== '/index.html') {
+          document.write('<style>#home-static-view{display:none !important;}</style><div id="page-pre-loader" style="min-height:75vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;padding:2rem;"><div style="width:40px;height:40px;border:3px solid rgba(37,99,235,0.15);border-top-color:#2563eb;border-radius:50%;animation:spin 0.7s linear infinite;"></div><p style="color:#64748b;font-size:0.92rem;font-weight:500;">Loading page...</p><style>@keyframes spin{to{transform:rotate(360deg)}}</style></div>');
+        }
+      })();
+    </script>
+    <div id="home-static-view">
     <!-- Hero Section (Default View) -->
     <section class="hero">
       <div class="container hero-grid">
@@ -185,14 +225,14 @@
         </div>
       </div>
     </section>
-
+    </div><!-- /#home-static-view -->
   </main>
 
   <!-- Footer -->
   <footer class="footer">
     <div class="container footer-grid">
       <div class="footer-brand">
-        <a href="/" class="brand-logo" onclick="app.navigateTo('/', event)">
+        <a href="/" class="brand-logo" onclick="window.navigateTo('/', event); return false;">
           <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
           <div class="brand-title">Quick Progressive <span>Career Point</span></div>
         </a>
@@ -202,21 +242,21 @@
       <div class="footer-col">
         <h4>Quick Links</h4>
         <ul class="footer-links">
-          <li><a href="/" onclick="app.navigateTo('/', event)">Home</a></li>
-          <li><a href="/about-us" onclick="app.navigateTo('/about-us', event)">About Us</a></li>
-          <li><a href="/gallery" onclick="app.navigateTo('/gallery', event)">Gallery &amp; Achievements</a></li>
-          <li><a href="/privacy-policy" onclick="app.navigateTo('/privacy-policy', event)"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Privacy Policy</a></li>
-          <li><a href="/terms" onclick="app.navigateTo('/terms', event)"><i class="fa-solid fa-scale-balanced" style="color: var(--primary);"></i> Terms &amp; Limitation</a></li>
+          <li><a href="/" onclick="window.navigateTo('/', event); return false;">Home</a></li>
+          <li><a href="/about-us" onclick="window.navigateTo('/about-us', event); return false;">About Us</a></li>
+          <li><a href="/gallery" onclick="window.navigateTo('/gallery', event); return false;">Gallery &amp; Achievements</a></li>
+          <li><a href="/privacy-policy" onclick="window.navigateTo('/privacy-policy', event); return false;"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Privacy Policy</a></li>
+          <li><a href="/terms" onclick="window.navigateTo('/terms', event); return false;"><i class="fa-solid fa-scale-balanced" style="color: var(--primary);"></i> Terms &amp; Limitation</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h4>Portals & Login</h4>
         <ul class="footer-links">
-          <li><a href="/student/login" onclick="app.navigateTo('/student/login', event)"><i class="fa-solid fa-graduation-cap"></i> Student Portal</a></li>
-          <li><a href="/teacher/login" onclick="app.navigateTo('/teacher/login', event)"><i class="fa-solid fa-chalkboard-user"></i> Verified Faculty</a></li>
-          <li><a href="/teacher/signup" onclick="app.navigateTo('/teacher/signup', event)"><i class="fa-solid fa-file-signature"></i> Teacher Application</a></li>
-          <li><a href="/admin/login" onclick="app.navigateTo('/admin/login', event)"><i class="fa-solid fa-user-shield"></i> Admin Command Center</a></li>
+          <li><a href="/student/login" onclick="window.navigateTo('/student/login', event); return false;"><i class="fa-solid fa-graduation-cap"></i> Student Portal</a></li>
+          <li><a href="/teacher/login" onclick="window.navigateTo('/teacher/login', event); return false;"><i class="fa-solid fa-chalkboard-user"></i> Verified Faculty</a></li>
+          <li><a href="/teacher/signup" onclick="window.navigateTo('/teacher/signup', event); return false;"><i class="fa-solid fa-file-signature"></i> Teacher Application</a></li>
+          <li><a href="/admin/login" onclick="window.navigateTo('/admin/login', event); return false;"><i class="fa-solid fa-user-shield"></i> Admin Command Center</a></li>
         </ul>
       </div>
 
@@ -225,7 +265,7 @@
         <ul class="footer-links">
           <li><a href="https://wa.me/917008221300" target="_blank"><i class="fa-brands fa-whatsapp"></i> +91 70082 21300</a></li>
           <li><a href="mailto:support@quickprogressive.edu.in"><i class="fa-solid fa-envelope"></i> support@quickprogressive.edu.in</a></li>
-          <li><a href="/privacy-policy" onclick="app.navigateTo('/privacy-policy', event)"><i class="fa-solid fa-user-lock"></i> Grievance Officer</a></li>
+          <li><a href="/privacy-policy" onclick="window.navigateTo('/privacy-policy', event); return false;"><i class="fa-solid fa-user-lock"></i> Grievance Officer</a></li>
         </ul>
       </div>
     </div>
@@ -234,9 +274,9 @@
       <div class="container footer-bottom-flex">
         <div>&copy; 2026 Quick Progressive Career Point (Odisha). All rights reserved.</div>
         <div class="footer-legal-links">
-          <a href="/privacy-policy" onclick="app.navigateTo('/privacy-policy', event)"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a>
+          <a href="/privacy-policy" onclick="window.navigateTo('/privacy-policy', event); return false;"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a>
           <span class="divider">•</span>
-          <a href="/terms" onclick="app.navigateTo('/terms', event)"><i class="fa-solid fa-scale-balanced"></i> Terms &amp; Limitation of Liability</a>
+          <a href="/terms" onclick="window.navigateTo('/terms', event); return false;"><i class="fa-solid fa-scale-balanced"></i> Terms &amp; Limitation of Liability</a>
         </div>
       </div>
     </div>
@@ -1251,7 +1291,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- JavaScript Scripts -->
-  <script type="module" src="store.js?v=20260929_v2"></script>
-  <script type="module" src="app.js?v=20260929_v2"></script>
+  <script type="module" src="store.js?v=20260929_mobileroute1"></script>
+  <script type="module" src="app.js?v=20260929_mobileroute1"></script>
 </body>
 </html>

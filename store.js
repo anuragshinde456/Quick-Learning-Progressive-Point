@@ -10,13 +10,11 @@ const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3Mi
 
 class DataStore {
   constructor() {
-    this.purgeLocalStorage();
     let initialUser = null;
     try {
-      if (typeof sessionStorage !== 'undefined') {
-        const saved = sessionStorage.getItem('qpcp_session_user');
-        if (saved) initialUser = JSON.parse(saved);
-      }
+      const saved = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('qpcp_session_user')) ||
+                    (typeof localStorage !== 'undefined' && localStorage.getItem('qpcp_session_user'));
+      if (saved) initialUser = JSON.parse(saved);
     } catch (_) {}
 
     this.data = {
@@ -221,9 +219,9 @@ class DataStore {
         this.data.currentUser = { ...this.data.currentUser, ...dbMatch };
         this.data.currentUser.mustResetPassword = !!(dbMatch.status && typeof dbMatch.status === 'string' && dbMatch.status.includes('must_reset_password'));
         try {
-          if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem('qpcp_session_user', JSON.stringify(this.data.currentUser));
-          }
+          const str = JSON.stringify(this.data.currentUser);
+          if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('qpcp_session_user', str);
+          if (typeof localStorage !== 'undefined') localStorage.setItem('qpcp_session_user', str);
         } catch (_) {}
       }
     }
@@ -240,12 +238,13 @@ class DataStore {
   setCurrentUser(user) {
     this.data.currentUser = user;
     try {
-      if (typeof sessionStorage !== 'undefined') {
-        if (user) {
-          sessionStorage.setItem('qpcp_session_user', JSON.stringify(user));
-        } else {
-          sessionStorage.removeItem('qpcp_session_user');
-        }
+      if (user) {
+        const str = JSON.stringify(user);
+        if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('qpcp_session_user', str);
+        if (typeof localStorage !== 'undefined') localStorage.setItem('qpcp_session_user', str);
+      } else {
+        if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('qpcp_session_user');
+        if (typeof localStorage !== 'undefined') localStorage.removeItem('qpcp_session_user');
       }
     } catch (_) {}
   }
@@ -253,9 +252,8 @@ class DataStore {
   logout() {
     this.data.currentUser = null;
     try {
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.removeItem('qpcp_session_user');
-      }
+      if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('qpcp_session_user');
+      if (typeof localStorage !== 'undefined') localStorage.removeItem('qpcp_session_user');
     } catch (_) {}
   }
 
