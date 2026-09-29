@@ -272,6 +272,13 @@
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
           <i class="fa-solid fa-right-to-bracket"></i> Login as Student
         </button>
+
+        <div class="form-hint" style="text-align: center; margin-top: 0.85rem; font-size: 0.8rem; color: var(--text-muted);">
+          Forgot Password? QPCP uses Administrator-managed manual resets (No automated OTP). 
+          <a href="https://wa.me/917008221300?text=Hello%20QPCP%20Admin,%20I%20forgot%20my%20Student%20account%20password.%20My%20registered%20name/phone%20is:%20" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <i class="fa-brands fa-whatsapp"></i> Request Reset from Admin
+          </a>
+        </div>
       </form>
 
       <!-- Student Signup Form -->
@@ -387,6 +394,13 @@
         <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 1rem;">
           <i class="fa-solid fa-chalkboard-user"></i> Login to Faculty Portal
         </button>
+
+        <div class="form-hint" style="text-align: center; margin-top: 0.85rem; font-size: 0.8rem; color: var(--text-muted);">
+          Forgot Password? QPCP operates via Administrator-managed manual resets (No automated OTP). 
+          <a href="https://wa.me/917008221300?text=Hello%20QPCP%20Admin,%20I%20forgot%20my%20Faculty%20account%20password.%20My%20registered%20name/phone%20is:%20" target="_blank" style="color: var(--accent-emerald); font-weight: 600; text-decoration: underline; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <i class="fa-brands fa-whatsapp"></i> Request Reset from Admin
+          </a>
+        </div>
       </form>
 
       <!-- Teacher Application Form -->
@@ -782,6 +796,10 @@
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: #0f172a; border-color: #334155;">
           <i class="fa-solid fa-shield-halved"></i> Access Command Center
         </button>
+
+        <div class="form-hint" style="text-align: center; margin-top: 0.85rem; font-size: 0.8rem; color: var(--text-muted);">
+          <i class="fa-solid fa-lock" style="font-size: 0.75rem;"></i> Forgot Administrator credentials? Contact QPCP HQ Director directly at +91 70082 21300.
+        </div>
       </form>
     </div>
   </div>
@@ -1042,6 +1060,164 @@
             <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Cloud Database
           </button>
         </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 9. Admin Reset User Password Modal (Admin Command Center) -->
+  <div class="modal-overlay" id="admin-reset-password-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <button class="modal-close" onclick="app.closeModal('admin-reset-password-modal')"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff1f2; color: var(--accent-rose); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px solid #fecdd3; flex-shrink: 0;">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <div>
+          <h2 class="modal-title" style="margin-bottom: 0.2rem; font-size: 1.25rem;">Reset User Password</h2>
+          <p class="modal-subtitle" style="margin-bottom: 0;">Admin-supervised manual credential reset on verified user request.</p>
+        </div>
+      </div>
+
+      <!-- Target User Information Summary -->
+      <div id="admin-reset-user-summary" style="background: var(--bg-main); border: 1px solid var(--glass-border); padding: 0.85rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <!-- Dynamically rendered by app.openAdminResetPasswordModal -->
+      </div>
+
+      <form id="admin-reset-password-form" onsubmit="app.handleAdminResetPasswordSubmit(event)">
+        <input type="hidden" id="admin-reset-target-user-id" value="">
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label class="form-label" for="admin-new-password" style="margin-bottom: 0;">New Temporary Password *</label>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.generateRandomAdminResetPassword()" style="font-size: 0.76rem; padding: 0.25rem 0.65rem; line-height: 1; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Generate
+            </button>
+          </div>
+          <div style="position: relative;">
+            <input type="password" class="form-control" id="admin-new-password" required minlength="6" maxlength="64" placeholder="Enter temporary password for user">
+            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('admin-new-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="admin-confirm-new-password">Confirm Temporary Password *</label>
+          <div style="position: relative;">
+            <input type="password" class="form-control" id="admin-confirm-new-password" required minlength="6" maxlength="64" placeholder="Re-enter temporary password to verify">
+            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('admin-confirm-new-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- CIA Triad Operational Security Box -->
+        <div style="background: #fff7ed; border: 1px solid #ffedd5; padding: 0.85rem 1rem; border-radius: var(--radius-md); font-size: 0.82rem; color: #9a3412; margin-bottom: 1.25rem;">
+          <div style="font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-shield-halved"></i> CIA Triad Security Enforcement:
+          </div>
+          <ul style="margin: 0 0 0 1.25rem; padding: 0; line-height: 1.45;">
+            <li>The user will be able to log in immediately with this temporary password.</li>
+            <li><strong>Mandatory First-Login Reset:</strong> On their first login, the user will be strictly forced to set their own private password before accessing their portal.</li>
+            <li>No costly OTP/SMS services needed: Copy or WhatsApp this temporary password directly to the verified requester.</li>
+          </ul>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('admin-reset-password-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-admin-submit-reset" style="background: var(--accent-rose); border-color: var(--accent-rose);">
+            <i class="fa-solid fa-key"></i> Set Password & Require Reset
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 10. Admin Reset Password Success Confirmation Modal -->
+  <div class="modal-overlay" id="admin-reset-success-modal">
+    <div class="modal-card" style="max-width: 500px; text-align: center;">
+      <button class="modal-close" onclick="app.closeModal('admin-reset-success-modal')"><i class="fa-solid fa-xmark"></i></button>
+
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: #ecfdf5; color: var(--accent-emerald); display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 0.75rem; border: 2px solid #a7f3d0;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h2 class="modal-title" style="margin-bottom: 0.25rem;">Temporary Password Set!</h2>
+      <p class="modal-subtitle" id="admin-reset-success-subtitle" style="margin-bottom: 1.25rem;">The temporary password has been successfully configured in the database.</p>
+
+      <div style="background: var(--bg-main); border: 2px dashed var(--accent-rose); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.35rem; font-weight: 700;">Temporary Credentials</div>
+        <div id="admin-reset-success-password-display" style="font-size: 1.4rem; font-family: monospace; font-weight: 700; color: #0f172a; word-break: break-all; margin-bottom: 0.65rem;"></div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="app.copyResetPasswordToClipboard()" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+          <i class="fa-solid fa-copy"></i> <span id="copy-pwd-btn-text">Copy Password to Clipboard</span>
+        </button>
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 0.85rem; font-size: 0.82rem; color: #1e40af; text-align: left; margin-bottom: 1.25rem;">
+        <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
+        <strong>Next Step:</strong> Deliver this password to the user. When they log in with it, the system will immediately prompt them to create their own secure password, fulfilling CIA Triad principles.
+      </div>
+
+      <div style="display: flex; gap: 0.65rem; justify-content: center; flex-wrap: wrap;">
+        <a id="admin-reset-whatsapp-link" href="#" target="_blank" class="btn btn-whatsapp" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+          <i class="fa-brands fa-whatsapp"></i> Send Credentials via WhatsApp
+        </a>
+        <button type="button" class="btn btn-primary" onclick="app.closeModal('admin-reset-success-modal')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Mandatory CIA-Triad Password Reset Modal (Forced on first login after admin reset) -->
+  <div class="modal-overlay forced-modal" id="force-password-reset-modal" data-prevent-close="true">
+    <div class="modal-card" style="max-width: 520px; border: 2px solid var(--accent-rose); box-shadow: 0 25px 50px -12px rgba(225, 29, 72, 0.35);">
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #fff1f2; color: var(--accent-rose); display: inline-flex; align-items: center; justify-content: center; font-size: 1.85rem; margin-bottom: 0.75rem; border: 2px solid #fecdd3; animation: pulseGlow 2s infinite;">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h2 class="modal-title" style="color: #0f172a; margin-bottom: 0.35rem; font-size: 1.35rem;">CIA Triad Security Action Required</h2>
+        <span class="role-badge" style="background: #fff1f2; color: var(--accent-rose); border: 1px solid #fecdd3; font-weight: 700; margin-bottom: 0.5rem; display: inline-block;">
+          <i class="fa-solid fa-lock"></i> Mandatory Private Password Update
+        </span>
+        <p class="modal-subtitle" style="font-size: 0.88rem; line-height: 1.5; color: var(--text-muted); margin-top: 0.5rem;">
+          Your account password was temporarily reset by the Administrator. In accordance with the <strong>CIA Triad (Confidentiality, Integrity, Availability)</strong>, you must now choose your own private password before proceeding. Only you will know this password.
+        </p>
+      </div>
+
+      <form id="force-password-reset-form" onsubmit="app.handleForcedPasswordResetSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="force-new-password">Choose Your New Private Password *</label>
+          <div style="position: relative;">
+            <input type="password" class="form-control" id="force-new-password" required minlength="6" maxlength="64" placeholder="Enter your private secure password" oninput="app.checkForcedPasswordStrength(this.value)">
+            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('force-new-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+          <div id="force-password-strength-bar" style="height: 4px; border-radius: 2px; margin-top: 6px; background: #e2e8f0; overflow: hidden;">
+            <div id="force-password-strength-fill" style="width: 0%; height: 100%; transition: all 0.3s ease; background: #dc2626;"></div>
+          </div>
+          <div id="force-password-strength-text" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 3px;">Password strength: Needs at least 6 characters</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="force-confirm-password">Confirm New Private Password *</label>
+          <div style="position: relative;">
+            <input type="password" class="form-control" id="force-confirm-password" required minlength="6" maxlength="64" placeholder="Repeat your private password to confirm">
+            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('force-confirm-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="force-password-error" style="display: none; padding: 0.65rem 0.85rem; border-radius: 8px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; font-size: 0.85rem; margin-bottom: 1rem;"></div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 0.9rem; border-radius: 8px; font-size: 0.8rem; color: #64748b; margin-bottom: 1.25rem;">
+          <i class="fa-solid fa-lock" style="color: var(--accent-rose); margin-right: 0.35rem;"></i>
+          <strong>Confidentiality Guarantee:</strong> After clicking submit, your temporary password is permanently replaced and cannot be retrieved by anyone, including the administrator.
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-submit-force-reset" style="width: 100%; padding: 0.75rem; background: var(--accent-rose); border-color: var(--accent-rose); font-weight: 700; font-size: 0.95rem;">
+          <i class="fa-solid fa-key"></i> Set Private Password & Continue
+        </button>
       </form>
     </div>
   </div>

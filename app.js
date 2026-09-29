@@ -15,6 +15,9 @@ class AppController {
     this.teacherActiveTab = 'students';
     this.studentActiveTab = 'inquiries';
     this.galleryFilter = 'all';
+    this.adminUserSearchQuery = '';
+    this.adminUserRoleFilter = 'all';
+    this.adminResetUserCurrent = null;
   }
 
   async init() {
@@ -43,11 +46,17 @@ class AppController {
     if (!this.modalListenersAttached) {
       document.addEventListener('click', (e) => {
         if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
+          if (e.target.id === 'force-password-reset-modal' || e.target.getAttribute('data-prevent-close') === 'true') {
+            return;
+          }
           this.closeAllModals();
         }
       });
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+          if (store.isPasswordResetRequired(store.getCurrentUser())) {
+            return;
+          }
           this.closeAllModals();
         }
       });
@@ -113,6 +122,9 @@ class AppController {
   }
 
   closeModal(modalId) {
+    if (modalId === 'force-password-reset-modal' && store.isPasswordResetRequired(store.getCurrentUser())) {
+      return;
+    }
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
   }
@@ -127,11 +139,17 @@ class AppController {
       'video-demo-modal',
       'student-edit-modal',
       'image-lightbox-modal',
-      'supabase-config-modal'
+      'supabase-config-modal',
+      'admin-reset-password-modal',
+      'admin-reset-success-modal'
     ];
     modalIds.forEach(id => this.closeModal(id));
     if (typeof document !== 'undefined') {
-      document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.modal-overlay').forEach(el => {
+        if (el.id !== 'force-password-reset-modal' || !store.isPasswordResetRequired(store.getCurrentUser())) {
+          el.classList.remove('active');
+        }
+      });
     }
   }
 
@@ -468,6 +486,13 @@ class AppController {
         throw new Error('Access denied: Administrator privileges required.');
       }
       this.closeModal('admin-auth-modal');
+      this.closeAllModals();
+
+      if (store.isPasswordResetRequired(user)) {
+        this.openForcedPasswordResetModal(user);
+        return;
+      }
+
       this.showToast('Welcome to Admin Command Center!', 'success');
       this.navigateTo('/admin/applicants');
     } catch (err) {
@@ -516,6 +541,7 @@ class AppController {
       '/admin/assign': 'Assign Home Tutor Matrix | Admin Command Center | QPCP',
       '/admin/gallery': 'Manage Gallery Database | Admin Command Center | QPCP',
       '/admin/profile': 'Edit Profile | Admin Command Center | QPCP',
+      '/admin/passwords': 'Reset User Passwords | Admin Command Center | QPCP',
       '/student/dashboard': 'Student Learning Portal | QPCP Odisha',
       '/student/inquiries': 'My Applications | Student Learning Portal | QPCP',
       '/student/assigned': 'My Assigned Faculty | Student Learning Portal | QPCP',
@@ -568,6 +594,11 @@ class AppController {
 
     if (!isAuthRoute) {
       this.closeAllModals();
+    }
+
+    // Mandatory CIA Triad check: if logged in user has pending password reset, force the modal
+    if (user && store.isPasswordResetRequired(user)) {
+      this.openForcedPasswordResetModal(user);
     }
 
     // 1. Global Public Views
@@ -642,7 +673,7 @@ class AppController {
       }
       this.currentView = 'admin';
       const sub = cleanPath.replace('/admin', '').replace(/^\//, '');
-      if (['applicants', 'teachers', 'students', 'inquiries', 'assign', 'gallery', 'profile'].includes(sub)) {
+      if (['applicants', 'teachers', 'students', 'inquiries', 'assign', 'gallery', 'profile', 'passwords'].includes(sub)) {
         this.adminActiveTab = sub;
       } else {
         this.adminActiveTab = 'applicants';
@@ -2318,6 +2349,11 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
                 </button>
               </li>
               <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn ${this.adminActiveTab === 'passwords' ? 'active' : ''}" onclick="app.switchAdminTab('passwords')">
+                  <i class="fa-solid fa-key" style="color: var(--accent-rose);"></i> Reset User Passwords
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
                 <button class="sidebar-nav-btn ${this.adminActiveTab === 'profile' ? 'active' : ''}" onclick="app.switchAdminTab('profile')">
                   <i class="fa-solid fa-user-pen"></i> Edit Profile
                 </button>
@@ -2384,9 +2420,14 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
                 </div>
 
                 <div class="dash-card-actions">
-                  <button class="btn btn-secondary btn-sm" onclick="app.openTeacherVideoModal('${app.id}')">
-                    <i class="fa-solid fa-film"></i> Review Demo Video
-                  </button>
+                  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary btn-sm" onclick="app.openTeacherVideoModal('${app.id}')">
+                      <i class="fa-solid fa-film"></i> Review Demo Video
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="app.openAdminResetPasswordModal('${app.id}')" title="Reset password for applicant ${app.name}" style="color: var(--accent-rose); border-color: #fecdd3;">
+                      <i class="fa-solid fa-key"></i> Reset Password
+                    </button>
+                  </div>
 
                   <div class="dash-card-btn-group">
                     <a href="https://wa.me/${app.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(app.name)},%20this%20is%20Quick%20Progressive%20Career%20Point%20Odisha%20Admin.%20We%20received%20your%20home%20tutor%20application!" target="_blank" class="btn btn-whatsapp btn-sm">
@@ -2436,7 +2477,8 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
                   <td><strong style="color: var(--accent-emerald);">₹${t.rate}</strong></td>
                   <td>${t.phone}<br><span style="font-size: 0.8rem; color: var(--text-muted);">${t.email}</span></td>
                   <td>
-                    <div style="display: flex; gap: 0.4rem;">
+                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                      <button class="btn btn-secondary btn-sm" onclick="app.openAdminResetPasswordModal('${t.id}')" title="Reset password for ${t.name}" style="color: var(--accent-rose); border-color: #fecdd3;"><i class="fa-solid fa-key"></i> Reset Pwd</button>
                       <button class="btn btn-secondary btn-sm" onclick="app.openTeacherVideoModal('${t.id}')"><i class="fa-solid fa-film"></i> Demo</button>
                       <button class="btn btn-danger btn-sm" onclick="app.handleAdminRemoveUser('${t.id}', '${t.name}')"><i class="fa-solid fa-trash-can"></i> Remove</button>
                     </div>
@@ -2479,7 +2521,10 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
                   <td><strong style="color: var(--text-main);">${s.phone}</strong></td>
                   <td>${s.email}</td>
                   <td>
-                    <button class="btn btn-danger btn-sm" onclick="app.handleAdminRemoveUser('${s.id}', '${s.name}')"><i class="fa-solid fa-user-minus"></i> Remove</button>
+                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                      <button class="btn btn-secondary btn-sm" onclick="app.openAdminResetPasswordModal('${s.id}')" title="Reset password for ${s.name}" style="color: var(--accent-rose); border-color: #fecdd3;"><i class="fa-solid fa-key"></i> Reset Pwd</button>
+                      <button class="btn btn-danger btn-sm" onclick="app.handleAdminRemoveUser('${s.id}', '${s.name}')"><i class="fa-solid fa-user-minus"></i> Remove</button>
+                    </div>
                   </td>
                 </tr>
               `).join('')}
@@ -2932,6 +2977,495 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
           </form>
         </div>
       `;
+    } else if (this.adminActiveTab === 'passwords') {
+      const allUsers = store.getAllUsersAdmin();
+      const q = (this.adminUserSearchQuery || '').toLowerCase().trim();
+      const roleFilter = this.adminUserRoleFilter || 'all';
+
+      let filtered = allUsers;
+      if (roleFilter !== 'all') {
+        if (roleFilter === 'student') {
+          filtered = filtered.filter(u => u.role === 'student');
+        } else if (roleFilter === 'verified_teacher') {
+          filtered = filtered.filter(u => u.role === 'verified_teacher');
+        } else if (roleFilter === 'teacher_applicant') {
+          filtered = filtered.filter(u => u.role === 'teacher_applicant');
+        } else if (roleFilter === 'admin') {
+          filtered = filtered.filter(u => u.role === 'admin');
+        } else if (roleFilter === 'pending_reset') {
+          filtered = filtered.filter(u => u.status && u.status.includes('must_reset_password'));
+        }
+      }
+
+      if (q) {
+        filtered = filtered.filter(u => 
+          (u.name && u.name.toLowerCase().includes(q)) ||
+          (u.username && u.username.toLowerCase().includes(q)) ||
+          (u.phone && u.phone.toLowerCase().includes(q)) ||
+          (u.email && u.email.toLowerCase().includes(q)) ||
+          (u.location && u.location.toLowerCase().includes(q))
+        );
+      }
+
+      const pendingResetCount = allUsers.filter(u => u.status && u.status.includes('must_reset_password')).length;
+
+      container.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h2 style="font-size: 1.35rem; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-key" style="color: var(--accent-rose);"></i> User Password Management & CIA Triad Security
+              </h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0; max-width: 750px;">
+                Reset credentials on verified user request without external OTP services. When you set a temporary password, the user can log in with it, and on first login will be <strong>strictly forced</strong> to choose their own private password to preserve the Confidentiality, Integrity, and Availability (CIA Triad).
+              </p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="app.renderMainView()" title="Refresh User List">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh Directory
+            </button>
+          </div>
+        </div>
+
+        <!-- Search & Filter Control Bar -->
+        <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 1.25rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; box-shadow: var(--glass-shadow);">
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;">
+            <div style="position: relative; flex: 1; min-width: 260px;">
+              <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
+              <input type="text" class="form-control" id="admin-user-search-input" placeholder="Search by student/tutor name, @username, mobile number, or email..." value="${this.adminUserSearchQuery || ''}" oninput="app.handleAdminUserSearch(this.value)" style="padding-left: 2.75rem; height: 44px; font-size: 0.92rem;">
+              ${this.adminUserSearchQuery ? `
+                <button type="button" onclick="app.handleAdminUserSearch('')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem;">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Role Filter Buttons -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-right: 0.25rem;">Filter:</span>
+            <button class="filter-pill ${roleFilter === 'all' ? 'active' : ''}" onclick="app.filterAdminUsersByRole('all')">
+              All Accounts (${allUsers.length})
+            </button>
+            <button class="filter-pill ${roleFilter === 'student' ? 'active' : ''}" onclick="app.filterAdminUsersByRole('student')">
+              Students (${allUsers.filter(u => u.role === 'student').length})
+            </button>
+            <button class="filter-pill ${roleFilter === 'verified_teacher' ? 'active' : ''}" onclick="app.filterAdminUsersByRole('verified_teacher')">
+              Verified Faculty (${allUsers.filter(u => u.role === 'verified_teacher').length})
+            </button>
+            <button class="filter-pill ${roleFilter === 'teacher_applicant' ? 'active' : ''}" onclick="app.filterAdminUsersByRole('teacher_applicant')">
+              Applicants (${allUsers.filter(u => u.role === 'teacher_applicant').length})
+            </button>
+            <button class="filter-pill ${roleFilter === 'admin' ? 'active' : ''}" onclick="app.filterAdminUsersByRole('admin')">
+              Administrators (${allUsers.filter(u => u.role === 'admin').length})
+            </button>
+            ${pendingResetCount > 0 ? `
+              <button class="filter-pill ${roleFilter === 'pending_reset' ? 'active' : ''}" onclick="app.filterAdminUsersByRole('pending_reset')" style="border-color: #fdba74; color: #c2410c;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Awaiting First Login (${pendingResetCount})
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Users Directory Table -->
+        ${filtered.length === 0 ? `
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 3rem; text-align: center; border-radius: var(--radius-lg);">
+            <i class="fa-solid fa-user-slash" style="font-size: 2.8rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+            <h3 style="margin-bottom: 0.35rem;">No matching accounts found</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Try adjusting your search query or role filter.</p>
+          </div>
+        ` : `
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Account / User</th>
+                  <th>Role</th>
+                  <th>Phone / WhatsApp</th>
+                  <th>Email</th>
+                  <th>CIA Triad Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filtered.map(u => {
+                  const isResetPending = u.status && typeof u.status === 'string' && u.status.includes('must_reset_password');
+                  const roleLabel = {
+                    'admin': 'Admin',
+                    'student': 'Student',
+                    'verified_teacher': 'Verified Faculty',
+                    'teacher_applicant': 'Applicant'
+                  }[u.role] || u.role;
+                  const cleanPhone = (u.phone || '').replace(/[^0-9]/g, '');
+
+                  return `
+                    <tr>
+                      <td>
+                        <div class="table-user-cell">
+                          <img src="${u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'User')}&background=0f172a&color=fff`}" class="table-avatar" alt="${u.name}">
+                          <div>
+                            <strong>${u.name || 'Unnamed User'}</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-dim);">@${u.username || 'unknown'}</div>
+                            ${u.location ? `<div style="font-size: 0.72rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${u.location}</div>` : ''}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="role-badge ${u.role}">${roleLabel}</span>
+                      </td>
+                      <td>
+                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">${u.phone || '<span style="color: var(--text-dim);">No phone</span>'}</div>
+                        ${cleanPhone ? `
+                          <a href="https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(u.name || 'User')},%20this%20is%20Quick%20Progressive%20Career%20Point%20Odisha%20Admin." target="_blank" style="font-size: 0.76rem; color: #16a34a; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 2px;">
+                            <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                          </a>
+                        ` : ''}
+                      </td>
+                      <td>
+                        <div style="font-size: 0.82rem; color: var(--text-muted); word-break: break-all;">${u.email || '<span style="color: var(--text-dim);">None</span>'}</div>
+                      </td>
+                      <td>
+                        ${isResetPending ? `
+                          <span class="role-badge" style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; display: inline-flex; align-items: center; gap: 0.35rem;" title="Temporary password set by admin; user is required to set new password on first login">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Awaiting First Login
+                          </span>
+                        ` : `
+                          <span class="role-badge" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <i class="fa-solid fa-shield-check"></i> Secured
+                          </span>
+                        `}
+                      </td>
+                      <td style="text-align: right;">
+                        <button class="btn btn-primary btn-sm" onclick="app.openAdminResetPasswordModal('${u.id}')" style="background: var(--accent-rose); border-color: var(--accent-rose); font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem;">
+                          <i class="fa-solid fa-key"></i> Reset Password
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      `;
+    }
+  }
+
+  handleAdminUserSearch(query) {
+    this.adminUserSearchQuery = query;
+    this.renderAdminTabContent(
+      store.data.teacherApplicants || [],
+      store.getVerifiedTeachers() || [],
+      store.getStudentsFullAdmin() || [],
+      store.data.studentInquiries || [],
+      store.data.teacherRequests || [],
+      store.data.assignments || []
+    );
+    const input = document.getElementById('admin-user-search-input');
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+  }
+
+  filterAdminUsersByRole(role) {
+    this.adminUserRoleFilter = role;
+    this.renderAdminTabContent(
+      store.data.teacherApplicants || [],
+      store.getVerifiedTeachers() || [],
+      store.getStudentsFullAdmin() || [],
+      store.data.studentInquiries || [],
+      store.data.teacherRequests || [],
+      store.data.assignments || []
+    );
+  }
+
+  openAdminResetPasswordModal(userId) {
+    const allUsers = store.getAllUsersAdmin();
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) {
+      this.showToast('Selected user not found in directory.', 'error');
+      return;
+    }
+
+    this.adminResetUserCurrent = user;
+    const targetInput = document.getElementById('admin-reset-target-user-id');
+    if (targetInput) targetInput.value = user.id;
+
+    const summary = document.getElementById('admin-reset-user-summary');
+    if (summary) {
+      const roleLabel = {
+        'admin': 'Administrator',
+        'student': 'Student',
+        'verified_teacher': 'Verified Faculty',
+        'teacher_applicant': 'Tutor Applicant'
+      }[user.role] || user.role;
+
+      summary.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+          <img src="${user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=0f172a&color=fff`}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-rose);" alt="${user.name}">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <strong style="font-size: 1rem; color: var(--text-main);">${user.name || 'User'}</strong>
+              <span class="role-badge ${user.role}" style="font-size: 0.72rem;">${roleLabel}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+              <span>@${user.username}</span> • <span>${user.phone || 'No phone'}</span> • <span>${user.location || 'Odisha'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const pwdInput = document.getElementById('admin-new-password');
+    const confirmInput = document.getElementById('admin-confirm-new-password');
+    if (pwdInput) {
+      pwdInput.value = '';
+      pwdInput.type = 'password';
+    }
+    if (confirmInput) {
+      confirmInput.value = '';
+      confirmInput.type = 'password';
+    }
+
+    this.openModal('admin-reset-password-modal');
+  }
+
+  generateRandomAdminResetPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let rand = '';
+    for (let i = 0; i < 6; i++) {
+      rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const genPwd = `QPCP@${rand}`;
+
+    const pwdInput = document.getElementById('admin-new-password');
+    const confirmInput = document.getElementById('admin-confirm-new-password');
+    if (pwdInput) {
+      pwdInput.value = genPwd;
+      pwdInput.type = 'text';
+    }
+    if (confirmInput) {
+      confirmInput.value = genPwd;
+      confirmInput.type = 'text';
+    }
+
+    this.showToast(`Generated temporary password: ${genPwd}`, 'info');
+  }
+
+  togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    if (btn) {
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+      }
+    }
+  }
+
+  async handleAdminResetPasswordSubmit(e) {
+    e.preventDefault();
+    const targetUserId = document.getElementById('admin-reset-target-user-id')?.value;
+    const pwd = document.getElementById('admin-new-password')?.value;
+    const confirmPwd = document.getElementById('admin-confirm-new-password')?.value;
+
+    if (!targetUserId) {
+      this.showToast('Target user identification missing.', 'error');
+      return;
+    }
+
+    if (!pwd || pwd.length < 6) {
+      this.showToast('Temporary password must be at least 6 characters long.', 'error');
+      return;
+    }
+
+    if (pwd !== confirmPwd) {
+      this.showToast('Passwords do not match. Please verify both fields.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-admin-submit-reset');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
+    try {
+      const updatedUser = await store.adminResetUserPassword(targetUserId, pwd);
+      this.closeModal('admin-reset-password-modal');
+      this.showToast(`Temporary password successfully set for ${updatedUser.name}!`, 'success');
+
+      this.lastResetPasswordValue = pwd;
+      const pwdDisplay = document.getElementById('admin-reset-success-password-display');
+      if (pwdDisplay) pwdDisplay.textContent = pwd;
+
+      const subtitle = document.getElementById('admin-reset-success-subtitle');
+      if (subtitle) {
+        subtitle.textContent = `Temporary password set for ${updatedUser.name} (@${updatedUser.username}). User will be required to change it on their first login.`;
+      }
+
+      const waLink = document.getElementById('admin-reset-whatsapp-link');
+      if (waLink) {
+        const cleanPhone = (updatedUser.phone || '').replace(/[^0-9]/g, '');
+        const waMsg = encodeURIComponent(
+          `Hello ${updatedUser.name}, your temporary login password for Quick Progressive Career Point is: ${pwd}\n\nPlease login using your username (@${updatedUser.username}) or phone number. Upon your first login, the system will prompt you to set your own secure private password.`
+        );
+        waLink.href = cleanPhone ? `https://wa.me/${cleanPhone}?text=${waMsg}` : `https://wa.me/?text=${waMsg}`;
+      }
+
+      const copyText = document.getElementById('copy-pwd-btn-text');
+      if (copyText) copyText.textContent = 'Copy Password to Clipboard';
+
+      this.openModal('admin-reset-success-modal');
+
+      if (this.currentView === 'admin' && this.adminActiveTab === 'passwords') {
+        this.renderAdminTabContent(
+          store.data.teacherApplicants || [],
+          store.getVerifiedTeachers() || [],
+          store.getStudentsFullAdmin() || [],
+          store.data.studentInquiries || [],
+          store.data.teacherRequests || [],
+          store.data.assignments || []
+        );
+      }
+    } catch (err) {
+      this.showToast(err.message, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-key"></i> Set Password & Require Reset';
+      }
+    }
+  }
+
+  copyResetPasswordToClipboard() {
+    const pwd = this.lastResetPasswordValue || document.getElementById('admin-reset-success-password-display')?.textContent;
+    if (!pwd) return;
+    navigator.clipboard.writeText(pwd).then(() => {
+      const copyText = document.getElementById('copy-pwd-btn-text');
+      if (copyText) copyText.textContent = 'Copied to Clipboard!';
+      this.showToast('Password copied to clipboard!', 'success');
+    }).catch(() => {
+      this.showToast('Could not copy automatically. Please copy manually.', 'info');
+    });
+  }
+
+  openForcedPasswordResetModal(user) {
+    this.closeAllModals();
+    const modal = document.getElementById('force-password-reset-modal');
+    if (modal) {
+      modal.classList.add('active');
+      const errBox = document.getElementById('force-password-error');
+      if (errBox) errBox.style.display = 'none';
+      const pwdInput = document.getElementById('force-new-password');
+      const confirmInput = document.getElementById('force-confirm-password');
+      if (pwdInput) pwdInput.value = '';
+      if (confirmInput) confirmInput.value = '';
+      const bar = document.getElementById('force-password-strength-fill');
+      if (bar) bar.style.width = '0%';
+    }
+  }
+
+  checkForcedPasswordStrength(pwd) {
+    const bar = document.getElementById('force-password-strength-fill');
+    const text = document.getElementById('force-password-strength-text');
+    if (!bar || !text) return;
+
+    if (!pwd || pwd.length === 0) {
+      bar.style.width = '0%';
+      bar.style.background = '#dc2626';
+      text.textContent = 'Password strength: Needs at least 6 characters';
+      return;
+    }
+
+    let score = 0;
+    if (pwd.length >= 6) score += 25;
+    if (pwd.length >= 8) score += 25;
+    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score += 25;
+    if (/[0-9]/.test(pwd) || /[^A-Za-z0-9]/.test(pwd)) score += 25;
+
+    bar.style.width = `${score}%`;
+    if (score <= 25) {
+      bar.style.background = '#dc2626';
+      text.textContent = 'Weak password - please make it longer';
+      text.style.color = '#dc2626';
+    } else if (score <= 50) {
+      bar.style.background = '#f97316';
+      text.textContent = 'Fair password - add letters and numbers';
+      text.style.color = '#ea580c';
+    } else if (score <= 75) {
+      bar.style.background = '#eab308';
+      text.textContent = 'Good password - add uppercase & symbols for maximum strength';
+      text.style.color = '#ca8a04';
+    } else {
+      bar.style.background = '#16a34a';
+      text.textContent = 'Strong & secure private password!';
+      text.style.color = '#16a34a';
+    }
+  }
+
+  async handleForcedPasswordResetSubmit(e) {
+    e.preventDefault();
+    const newPwd = document.getElementById('force-new-password')?.value;
+    const confirmPwd = document.getElementById('force-confirm-password')?.value;
+    const errBox = document.getElementById('force-password-error');
+
+    const showError = (msg) => {
+      if (errBox) {
+        errBox.textContent = msg;
+        errBox.style.display = 'block';
+      } else {
+        this.showToast(msg, 'error');
+      }
+    };
+
+    if (!newPwd || newPwd.length < 6) {
+      showError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (newPwd !== confirmPwd) {
+      showError('Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    const currentUser = store.getCurrentUser();
+    if (currentUser && newPwd === currentUser.password) {
+      showError('To maintain the CIA Triad (Confidentiality), your new password cannot be the same as the temporary password provided by the administrator. Please choose a new unique password.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit-force-reset');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing Account...';
+    }
+
+    try {
+      const user = await store.completeForcedPasswordReset(newPwd);
+      const modal = document.getElementById('force-password-reset-modal');
+      if (modal) modal.classList.remove('active');
+
+      this.showToast('Password updated successfully! Your account is now secured under the CIA Triad.', 'success');
+
+      if (user.role === 'admin') {
+        this.navigateTo('/admin/dashboard');
+      } else if (user.role === 'verified_teacher') {
+        this.navigateTo('/teacher/dashboard');
+      } else if (user.role === 'teacher_applicant') {
+        this.navigateTo('/teacher/status');
+      } else {
+        this.navigateTo('/student/dashboard');
+      }
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-key"></i> Set Private Password & Continue';
+      }
     }
   }
 
@@ -3142,6 +3676,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       const user = await store.login(u, p, 'student');
       this.closeModal('student-auth-modal');
       this.closeAllModals();
+
+      if (store.isPasswordResetRequired(user)) {
+        this.openForcedPasswordResetModal(user);
+        return;
+      }
+
       if (user.role === 'admin') {
         this.showToast('Administrator logged in! Welcome to Admin Command Center.', 'success');
         this.navigateTo('/admin/dashboard');
@@ -3226,6 +3766,12 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
       this.closeModal('teacher-auth-modal');
       this.closeAllModals();
       if (passField) passField.value = '';
+
+      if (store.isPasswordResetRequired(user)) {
+        this.openForcedPasswordResetModal(user);
+        return;
+      }
+
       if (user.role === 'admin') {
         this.showToast('Administrator logged in! Welcome to Admin Command Center.', 'success');
         this.navigateTo('/admin/dashboard');
@@ -3312,9 +3858,15 @@ Please verify home slot availability, assign a coordinator, and contact us to sc
     const p = document.getElementById('adm-login-pass').value;
 
     try {
-      await store.login(u, p, 'admin');
+      const user = await store.login(u, p, 'admin');
       this.closeModal('admin-auth-modal');
       this.closeAllModals();
+
+      if (store.isPasswordResetRequired(user)) {
+        this.openForcedPasswordResetModal(user);
+        return;
+      }
+
       this.showToast('Administrator logged in successfully!', 'success');
       this.navigateTo('/admin/dashboard');
     } catch (err) {

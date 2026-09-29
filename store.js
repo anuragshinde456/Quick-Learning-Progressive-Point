@@ -149,6 +149,7 @@ class DataStore {
           try { u.subjects = JSON.parse(u.subjects); } catch(e) { u.subjects = u.subjects.split(',').map(s => s.trim()); }
         }
         if (!u.subjects) u.subjects = [];
+        u.mustResetPassword = !!(u.status && typeof u.status === 'string' && u.status.includes('must_reset_password'));
       });
 
       const prevUsersStr = JSON.stringify(this.data.users || []);
@@ -218,6 +219,7 @@ class DataStore {
       const dbMatch = this.data.users.find(u => u.id === this.data.currentUser.id || u.username === this.data.currentUser.username);
       if (dbMatch) {
         this.data.currentUser = { ...this.data.currentUser, ...dbMatch };
+        this.data.currentUser.mustResetPassword = !!(dbMatch.status && typeof dbMatch.status === 'string' && dbMatch.status.includes('must_reset_password'));
         try {
           if (typeof sessionStorage !== 'undefined') {
             sessionStorage.setItem('qpcp_session_user', JSON.stringify(this.data.currentUser));
@@ -266,7 +268,7 @@ class DataStore {
       throw new Error('Access denied: You can only update your own profile.');
     }
 
-    const allowed = ['name', 'phone', 'email', 'location', 'avatar', 'grade', 'subjects', 'rate', 'experience', 'bio', 'videoUrl', 'password'];
+    const allowed = ['name', 'phone', 'email', 'location', 'avatar', 'grade', 'subjects', 'rate', 'experience', 'bio', 'videoUrl', 'password', 'status'];
     const payload = {};
     for (const key of allowed) {
       if (updateFields[key] !== undefined && updateFields[key] !== null) {
@@ -303,6 +305,119 @@ class DataStore {
     return this.data.currentUser;
   }
 
+  isPasswordResetRequired(user) {
+    if (!user) return false;
+    if (user.mustResetPassword === true) return true;
+    if (user.status && typeof user.status === 'string' && user.status.includes('must_reset_password')) return true;
+    return false;
+  }
+
+  getAllUsersAdmin() {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return [];
+    }
+    return (this.data.users || []).filter(u => u.role !== 'gallery_item');
+  }
+
+  async adminResetUserPassword(userId, newPassword) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error('Access denied: Only Administrators can reset user passwords.');
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('Temporary password must be at least 6 characters long.');
+    }
+
+    const targetUser = (this.data.users || []).find(u => u.id === userId);
+    if (!targetUser) {
+      throw new Error('User not found in system directory.');
+    }
+
+    // Retain existing approval/pending tags while marking must_reset_password
+    let newStatus = 'must_reset_password';
+    if (targetUser.role === 'verified_teacher' || (targetUser.status && targetUser.status.includes('approved'))) {
+      newStatus = 'approved:must_reset_password';
+    } else if (targetUser.status && targetUser.status.includes('pending')) {
+      newStatus = 'pending:must_reset_password';
+    }
+
+    const payload = {
+      password: newPassword,
+      status: newStatus
+    };
+
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: this.getSupabaseHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to reset password in database (HTTP ${res.status}): ${errText}`);
+    }
+
+    targetUser.password = newPassword;
+    targetUser.status = newStatus;
+    targetUser.mustResetPassword = true;
+
+    await this.syncFromSupabase();
+    return targetUser;
+  }
+
+  async completeForcedPasswordReset(newPassword) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) {
+      throw new Error('No active user session found. Please log in.');
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('New password must be at least 6 characters long.');
+    }
+
+    if (newPassword === currentUser.password) {
+      throw new Error('To maintain security (CIA Triad), your new password cannot be the same as the temporary password set by the administrator. Please choose a new, unique password.');
+    }
+
+    // Clean status removing must_reset_password marker
+    let cleanStatus = 'active';
+    if (currentUser.role === 'verified_teacher') {
+      cleanStatus = 'approved';
+    } else if (currentUser.status) {
+      cleanStatus = currentUser.status
+        .replace(':must_reset_password', '')
+        .replace('must_reset_password', '')
+        .trim();
+      if (!cleanStatus) cleanStatus = 'active';
+    }
+
+    const payload = {
+      password: newPassword,
+      status: cleanStatus
+    };
+
+    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(currentUser.id)}`, {
+      method: 'PATCH',
+      headers: this.getSupabaseHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to update password in database (HTTP ${res.status}): ${errText}`);
+    }
+
+    currentUser.password = newPassword;
+    currentUser.status = cleanStatus;
+    currentUser.mustResetPassword = false;
+    this.setCurrentUser(currentUser);
+
+    await this.syncFromSupabase();
+    return currentUser;
+  }
+
   async login(usernameOrEmail, password, roleHint = null) {
     const q = (usernameOrEmail || '').toLowerCase().trim();
 
@@ -313,7 +428,26 @@ class DataStore {
       (u.password === password || (u.role === 'admin' && (password === 'admin' || password === 'Admin@QPCP2026!')))
     );
 
-    // If not found in memory, sync fresh from Supabase and retry
+    // If not found in memory, query Supabase directly for this user (including password)
+    if (!user) {
+      try {
+        const headers = this.getSupabaseHeaders();
+        const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?or=(username.ilike.${encodeURIComponent(q)},email.ilike.${encodeURIComponent(q)})&select=*&limit=1`, { headers });
+        if (res.ok) {
+          const rows = await res.json();
+          if (Array.isArray(rows) && rows.length > 0) {
+            const dbU = rows[0];
+            if (dbU.password === password || (dbU.role === 'admin' && (password === 'admin' || password === 'Admin@QPCP2026!'))) {
+              user = dbU;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Direct login fetch exception:', e);
+      }
+    }
+
+    // Fallback sync and retry
     if (!user) {
       await this.syncFromSupabase();
       user = (this.data.users || []).find(u => 
@@ -337,6 +471,12 @@ class DataStore {
 
     if (roleHint && roleHint === 'student' && user.role !== 'student' && user.role !== 'admin') {
       throw new Error('This account is registered as a Teacher. Please login using the Teacher Portal.');
+    }
+
+    if (user.status && typeof user.status === 'string' && user.status.includes('must_reset_password')) {
+      user.mustResetPassword = true;
+    } else {
+      user.mustResetPassword = false;
     }
 
     this.setCurrentUser(user);
@@ -438,50 +578,11 @@ class DataStore {
     return newApplicant;
   }
 
-  async updateUserProfile(userId, updateFields) {
-    const userIndex = (this.data.users || []).findIndex(u => u.id === userId);
-    if (userIndex === -1) throw new Error('User not found in system directory.');
-
-    const currentUser = this.data.users[userIndex];
-    const allowed = ['name', 'phone', 'email', 'avatar', 'grade', 'location', 'subjects', 'rate', 'experience', 'bio', 'videoUrl'];
-    const dbPayload = {};
-
-    allowed.forEach(field => {
-      if (updateFields[field] !== undefined) {
-        dbPayload[field] = updateFields[field];
-        currentUser[field] = updateFields[field];
-      }
-    });
-
-    const res = await fetch(`${DEFAULT_SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`, {
-      method: 'PATCH',
-      headers: this.getSupabaseHeaders(),
-      body: JSON.stringify(dbPayload)
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Failed to update profile in database (HTTP ${res.status}): ${errText}`);
-    }
-
-    if (this.data.currentUser && this.data.currentUser.id === userId) {
-      this.data.currentUser = { ...this.data.currentUser, ...currentUser };
-      try {
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.setItem('qpcp_session_user', JSON.stringify(this.data.currentUser));
-        }
-      } catch (_) {}
-    }
-
-    await this.syncFromSupabase();
-    return this.data.currentUser || currentUser;
-  }
-
   getVerifiedTeachers() {
     if (this.data.teachers && this.data.teachers.length > 0) {
-      return this.data.teachers.filter(u => u.role === 'verified_teacher' || u.status === 'approved');
+      return this.data.teachers.filter(u => u.role === 'verified_teacher' || (u.status && u.status.includes('approved')));
     }
-    return this.data.users.filter(u => u.role === 'verified_teacher' || u.status === 'approved');
+    return this.data.users.filter(u => u.role === 'verified_teacher' || (u.status && u.status.includes('approved')));
   }
 
   getTeacherById(id) {
@@ -530,9 +631,9 @@ class DataStore {
       return [];
     }
     if (this.data.teacherApplicants && this.data.teacherApplicants.length > 0) {
-      return this.data.teacherApplicants.filter(u => u.status !== 'approved');
+      return this.data.teacherApplicants.filter(u => !u.status || !u.status.includes('approved'));
     }
-    return this.data.users.filter(u => u.role === 'teacher_applicant' && u.status !== 'approved');
+    return this.data.users.filter(u => u.role === 'teacher_applicant' && (!u.status || !u.status.includes('approved')));
   }
 
   async createStudentInquiry(studentId, teacherId, subject, message) {
