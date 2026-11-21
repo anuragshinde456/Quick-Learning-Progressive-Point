@@ -13,6 +13,7 @@ export class SharedUI {
   // --- Initialize Shared Components on Page Load ---
   init(activePage = '') {
     this.ensureToastContainer();
+    this.ensurePrivacyModal();
     this.renderHeader(activePage);
     this.renderFooter();
     this.attachMobileMenu();
@@ -259,6 +260,189 @@ export class SharedUI {
     }, 400);
   }
 
+  // --- Ensure Privacy & Terms Modal Exists in DOM ---
+  ensurePrivacyModal() {
+    if (document.getElementById('privacy-policy-modal')) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'privacy-policy-modal';
+    modal.innerHTML = `
+      <div class="modal-card lg" style="max-width: 860px;">
+        <button class="modal-close" type="button"><i class="fa-solid fa-xmark"></i></button>
+        
+        <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.85rem;">
+          <div style="width: 46px; height: 46px; border-radius: 12px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1px solid var(--primary-border); flex-shrink: 0;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h2 class="modal-title" style="margin-bottom: 0.15rem; font-size: 1.35rem;">Privacy Policy & Terms of Service</h2>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="dpdp-badge"><i class="fa-solid fa-shield-halved"></i> Official Policy & Terms</span>
+              <span style="font-size: 0.74rem; color: var(--text-dim);">Quick Progressive Career Point • Odisha, India</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="tab-switcher" style="margin-bottom: 1.1rem;">
+          <button class="tab-btn" id="privacy-tab-btn-terms" type="button">
+            <i class="fa-solid fa-scale-balanced"></i> Terms of Service & Disclaimer
+          </button>
+          <button class="tab-btn active" id="privacy-tab-btn-dpdp" type="button">
+            <i class="fa-solid fa-user-shield"></i> Privacy Policy (DPDP Act)
+          </button>
+        </div>
+
+        <!-- Scrollable Policy Container -->
+        <div class="policy-doc-container" style="max-height: 55vh; overflow-y: auto; padding-right: 0.5rem;">
+          
+          <!-- PANE 1: TERMS OF SERVICE -->
+          <div id="privacy-pane-terms" style="display: none;">
+            <div class="policy-doc-section">
+              <h3><i class="fa-solid fa-key" style="color: var(--accent-rose);"></i> 1. User Sole Responsibility for Credentials & Device Security</h3>
+              <p>Every registered user (Student, Parent, Tutor) is solely and exclusively responsible for safeguarding their login credentials and account access:</p>
+              <ul>
+                <li>You must maintain the strict confidentiality of your password, username, email account, and mobile number.</li>
+                <li>You must create a strong, compliant password meeting the platform's security policy.</li>
+                <li>You are strictly prohibited from sharing your login credentials with any third party, friend, or unauthorized individual.</li>
+                <li>All activities, inquiries, communications, and transactions initiated under your registered credentials are deemed to have been executed by you.</li>
+              </ul>
+            </div>
+
+            <div class="policy-doc-section">
+              <h3><i class="fa-solid fa-shield-slash" style="color: var(--accent-rose);"></i> 2. Complete Disclaimer of Liability: If Credentials or Data are Lost, QPCP is NOT to Blame</h3>
+              <div class="policy-alert-box" style="background: #fff1f2; border-left: 4px solid #e11d48; padding: 0.85rem; border-radius: 6px; color: #881337; margin: 0.75rem 0;">
+                <strong>EXPRESS LEGAL RELEASE:</strong> If a user's password, login credentials, phone, SIM card, computer, or personal devices are lost, misplaced, stolen, compromised, hacked, or accessed without authorization due to user negligence or device sharing:
+                <br><br>
+                <strong>QUICK PROGRESSIVE CAREER POINT, ITS OPERATORS, AND ADMINISTRATORS SHALL BEAR ZERO RESPONSIBILITY OR LIABILITY AND ARE NOT TO BLAME.</strong> Under no circumstances will QPCP be held accountable or liable for unauthorized access, account takeover, or loss of personal data.
+              </div>
+            </div>
+
+            <div class="policy-doc-section">
+              <h3><i class="fa-solid fa-handshake-slash" style="color: var(--text-main);"></i> 3. Intermediary Status & Offline Tutoring Disclaimer</h3>
+              <p>Quick Progressive Career Point operates strictly as a digital matching platform connecting independent freelance tutors with students/parents across Odisha:</p>
+              <ul>
+                <li><strong>Independent Educators:</strong> Tutors listed on QPCP are independent freelance educators and not employees of QPCP.</li>
+                <li><strong>Offline Home Lessons:</strong> Lessons take place at the student's residence. Parents and guardians must exercise normal prudence and presence during sessions.</li>
+                <li><strong>Fee Arrangements:</strong> Tuition fee schedules negotiated between parents and tutors are bilateral. QPCP holds zero liability for payment defaults or disputes.</li>
+              </ul>
+            </div>
+
+            <div class="policy-doc-section">
+              <h3><i class="fa-solid fa-gavel" style="color: var(--primary);"></i> 4. Governing Law & Dispute Jurisdiction</h3>
+              <p>These terms and all related policies are governed by the substantive laws of India (including the Digital Personal Data Protection Act, 2023). Any dispute shall be subject to the exclusive jurisdiction of the competent courts situated in <strong>Bhubaneswar / Cuttack, Odisha, India</strong>.</p>
+            </div>
+          </div>
+
+          <!-- PANE 2: PRIVACY POLICY -->
+          <div id="privacy-pane-dpdp" style="display: block;">
+            <div class="policy-alert-box" style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 0.85rem; border-radius: 6px; color: #065f46; margin: 0.75rem 0;">
+              <strong>Digital Personal Data Protection Act, 2023 Notice (Section 5):</strong> Quick Progressive Career Point ("QPCP", Data Fiduciary) provides this statutory notice to students, parents, and tutors ("Data Principals") across Odisha before processing digital personal data.
+            </div>
+
+            <div class="policy-doc-section">
+              <h3><i class="fa-solid fa-database" style="color: var(--primary);"></i> 1. Itemized Personal Data Collected</h3>
+              <p>In accordance with Section 5(1)(i) of the DPDP Act 2023, QPCP collects only strictly necessary data voluntarily provided during registration:</p>
+              <ul>
+                <li><strong>Students / Parents:</strong> Full name, 10-digit mobile number, email address, grade/exam goal, locality/city in Odisha, and optional profile photo. Used solely to match with verified home tutors.</li>
+                <li><strong>Faculty / Tutors:</strong> Full name, mobile number, email, subjects, hourly fee, teaching experience, locality in Odisha, bio, demo video URL, CV file, and profile photo. Used to vet teaching proficiency and feature profiles to students.</li>
+              </ul>
+            </div>
+
+            <div class="policy-doc-section">
+              <h3><i class="fa-solid fa-user-lock" style="color: var(--primary);"></i> 2. Rights of Data Principals & Grievances</h3>
+              <p>Under the DPDP Act 2023, you retain full rights to access, update, rectify, or request the deletion of your personal data at any time.</p>
+              <p>For inquiries or grievances, contact our Grievance Officer: <strong>support@quickprogressive.edu.in</strong> or WhatsApp: <strong>+91 70082 21300</strong>.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer Action Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.15rem; padding-top: 1rem; border-top: 1px solid var(--glass-border); flex-wrap: wrap; gap: 0.75rem;">
+          <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> 
+            <span>Standard agreement required for registration</span>
+          </div>
+          <div style="display: flex; gap: 0.6rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="close-privacy-btn">Close</button>
+            <button type="button" class="btn btn-primary btn-sm" id="accept-privacy-btn">
+              <i class="fa-solid fa-check"></i> I Understand & Agree
+            </button>
+          </div>
+        </div>
+
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Attach internal listeners
+    const termsBtn = modal.querySelector('#privacy-tab-btn-terms');
+    const dpdpBtn = modal.querySelector('#privacy-tab-btn-dpdp');
+    if (termsBtn) termsBtn.addEventListener('click', () => this.switchPrivacyTab('terms'));
+    if (dpdpBtn) dpdpBtn.addEventListener('click', () => this.switchPrivacyTab('dpdp'));
+
+    const closeBtn = modal.querySelector('#close-privacy-btn');
+    if (closeBtn) closeBtn.addEventListener('click', () => this.closeModal('privacy-policy-modal'));
+
+    const acceptBtn = modal.querySelector('#accept-privacy-btn');
+    if (acceptBtn) acceptBtn.addEventListener('click', () => this.acceptPrivacyAndClose());
+  }
+
+  // --- Open Privacy Modal to Tab ---
+  openPrivacyModal(tab = 'terms') {
+    this.ensurePrivacyModal();
+    this.switchPrivacyTab(tab);
+    this.openModal('privacy-policy-modal');
+  }
+
+  // --- Switch Privacy Tab ---
+  switchPrivacyTab(tab = 'terms') {
+    const isTerms = tab === 'terms';
+    const dpdpPane = document.getElementById('privacy-pane-dpdp');
+    const termsPane = document.getElementById('privacy-pane-terms');
+    const dpdpBtn = document.getElementById('privacy-tab-btn-dpdp');
+    const termsBtn = document.getElementById('privacy-tab-btn-terms');
+
+    if (dpdpPane && termsPane) {
+      if (isTerms) {
+        termsPane.style.display = 'block';
+        dpdpPane.style.display = 'none';
+        if (termsBtn) termsBtn.classList.add('active');
+        if (dpdpBtn) dpdpBtn.classList.remove('active');
+      } else {
+        termsPane.style.display = 'none';
+        dpdpPane.style.display = 'block';
+        if (termsBtn) termsBtn.classList.remove('active');
+        if (dpdpBtn) dpdpBtn.classList.add('active');
+      }
+    }
+  }
+
+  // --- Accept Privacy and Check Consent Checkboxes ---
+  acceptPrivacyAndClose() {
+    let checkedAny = false;
+    const stdConsent = document.getElementById('std-reg-consent');
+    const tchConsent = document.getElementById('tch-reg-consent');
+
+    if (stdConsent) {
+      stdConsent.checked = true;
+      checkedAny = true;
+    }
+    if (tchConsent) {
+      tchConsent.checked = true;
+      checkedAny = true;
+    }
+
+    this.closeModal('privacy-policy-modal');
+    if (checkedAny) {
+      this.showToast('Terms of Service & Privacy Policy agreed and checked!', 'success');
+    } else {
+      this.showToast('Terms of Service & Privacy Policy acknowledged.', 'info');
+    }
+  }
+
   // --- Protect Pages Based on User Role ---
   requireAuth(allowedRoles = []) {
     const user = store.getCurrentUser();
@@ -339,8 +523,15 @@ export class SharedUI {
       </div>
 
       <div class="footer-bottom">
-        <div class="container">
-          &copy; ${new Date().getFullYear()} Quick Progressive Career Point (QPCP Odisha). All rights reserved.
+        <div class="container footer-bottom-flex" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            &copy; ${new Date().getFullYear()} Quick Progressive Career Point (QPCP Odisha). All rights reserved.
+          </div>
+          <div class="footer-legal-links" style="display: flex; gap: 0.85rem; font-size: 0.82rem;">
+            <a href="javascript:void(0)" onclick="shared.openPrivacyModal('terms')" style="color: var(--text-muted); text-decoration: underline;">Terms of Service</a>
+            <span style="color: var(--glass-border);">|</span>
+            <a href="javascript:void(0)" onclick="shared.openPrivacyModal('dpdp')" style="color: var(--text-muted); text-decoration: underline;">Privacy Policy (DPDP)</a>
+          </div>
         </div>
       </div>
     `;
@@ -348,3 +539,6 @@ export class SharedUI {
 }
 
 export const shared = new SharedUI();
+if (typeof window !== 'undefined') {
+  window.shared = shared;
+}

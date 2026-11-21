@@ -111,7 +111,18 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="std-submit-btn" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 1rem;">
+        <div class="form-group simple-terms-group" style="margin-top: 1.15rem; margin-bottom: 1.15rem;">
+          <label class="simple-terms-label" for="std-reg-consent" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer;">
+            <input type="checkbox" id="std-reg-consent" required style="width: 1.25rem; height: 1.25rem; margin-top: 0.15rem; accent-color: var(--primary); cursor: pointer; flex-shrink: 0;">
+            <span style="font-size: 0.88rem; line-height: 1.5; color: var(--text-main);">
+              I confirm that I have read and agree to Quick Progressive Career Point's 
+              <a href="javascript:void(0)" id="std-terms-link" style="color: var(--primary); font-weight: 700; text-decoration: underline;">Terms of Service</a> and 
+              <a href="javascript:void(0)" id="std-privacy-link" style="color: var(--primary); font-weight: 700; text-decoration: underline;">Privacy Policy</a>.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="std-submit-btn" style="width: 100%; margin-top: 0.5rem; padding: 0.85rem; font-size: 1rem;">
           <i class="fa-solid fa-user-plus"></i> Complete Student Registration
         </button>
       </form>
@@ -131,6 +142,16 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       shared.init('signup-student');
+
+      // Terms modal trigger links
+      document.getElementById('std-terms-link')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        shared.openPrivacyModal('terms');
+      });
+      document.getElementById('std-privacy-link')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        shared.openPrivacyModal('dpdp');
+      });
 
       // Avatar file selector
       const fileInput = document.getElementById('std-avatar-file');
@@ -158,6 +179,15 @@
       const form = document.getElementById('student-signup-form');
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Validate consent checkbox
+        const consent = document.getElementById('std-reg-consent');
+        if (!consent || !consent.checked) {
+          shared.showToast('Please agree to the Terms of Service and Privacy Policy to register.', 'error');
+          consent?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          consent?.focus();
+          return;
+        }
 
         const name = document.getElementById('std-name').value.trim();
         const username = document.getElementById('std-username').value.trim();
@@ -191,7 +221,9 @@
           grade,
           location,
           password,
-          avatar
+          avatar,
+          privacyConsent: true,
+          dpdpConsent: true
         };
 
         const origHtml = submitBtn.innerHTML;
