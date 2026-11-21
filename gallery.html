@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery - Quick Progressive Career Point Odisha</title>
+  <meta name="description" content="View photos and highlights of 1-on-1 home tutoring sessions, faculty pedagogical workshops, science kits, and topper felicitations across Odisha.">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Career Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="index.html" class="nav-link" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link active" data-page="gallery">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container"></div>
+
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html" class="mobile-nav-link" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link active" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <section class="hero" style="padding-top: 3rem; padding-bottom: 3.5rem;">
+      <div class="container" style="text-align: center; max-width: 780px;">
+        <div class="hero-tag"><i class="fa-solid fa-images"></i> QPCP Odisha Tutoring Highlights</div>
+        <h1 class="hero-title">Explore Our <span class="gradient-text">Home Tutoring Gallery</span></h1>
+        <p class="hero-desc" style="margin: 0 auto 1.5rem;">
+          Glimpses of 1-on-1 home tutoring sessions, tutor workshops, practical experiment kits, and board topper felicitations across Odisha.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <!-- Filter Chips -->
+        <div class="filter-chips" id="gallery-chips" style="justify-content: center; margin-bottom: 2.5rem; flex-wrap: wrap;">
+          <button class="chip active" data-cat="all">All Photos</button>
+          <button class="chip" data-cat="Classrooms">Home Sessions</button>
+          <button class="chip" data-cat="Workshops">Faculty Meetings</button>
+          <button class="chip" data-cat="Labs">Practical Kits</button>
+          <button class="chip" data-cat="Achievements">Topper Celebrations</button>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div class="responsive-card-grid" id="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Lightbox Modal -->
+    <div class="modal-overlay" id="gallery-lightbox-modal">
+      <div class="modal-card lg" style="padding: 1rem; text-align: center; background: #000; border-color: #334155;">
+        <button class="modal-close" style="background: rgba(255,255,255,0.2); color: #fff;"><i class="fa-solid fa-xmark"></i></button>
+        <img id="lightbox-img" src="" alt="Gallery Preview" style="max-height: 75vh; border-radius: var(--radius-md); object-fit: contain; width: 100%;">
+        <p id="lightbox-caption" style="color: #cbd5e1; font-weight: 600; margin-top: 1rem;"></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module">
+    import { shared } from './shared.js?v=20261122_v1';
+
+    const defaultGallery = [
+      {
+        id: 'g1',
+        title: 'Home Tutoring Session in Odisha',
+        category: 'Classrooms',
+        img: 'assets/gallery_classroom.jpg',
+        desc: '1-on-1 personalized home tutoring session at student residence in Patia, Bhubaneswar.'
+      },
+      {
+        id: 'g2',
+        title: 'Odisha Faculty Pedagogy Workshop',
+        category: 'Workshops',
+        img: 'assets/gallery_workshop.jpg',
+        desc: 'Our Odisha home faculty discussing progressive coaching methods and board strategies.'
+      },
+      {
+        id: 'g3',
+        title: 'Odisha Board & Entrance Toppers Felicitation',
+        category: 'Achievements',
+        img: 'assets/gallery_achievement.jpg',
+        desc: 'Honoring top CHSE Odisha, CBSE & JEE/NEET rankers mentored by QPCP tutors.'
+      },
+      {
+        id: 'g4',
+        title: 'Home Practical Science Experiment Kit',
+        category: 'Labs',
+        img: 'assets/gallery_lab.jpg',
+        desc: 'Hands-on practical physics and chemistry experiment kit sessions at student home.'
+      }
+    ];
+
+    let activeCategory = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      shared.init('gallery');
+      renderGallery();
+
+      const chips = document.querySelectorAll('#gallery-chips .chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeCategory = chip.getAttribute('data-cat') || 'all';
+          renderGallery();
+        });
+      });
+    });
+
+    function renderGallery() {
+      const grid = document.getElementById('gallery-grid');
+      if (!grid) return;
+
+      const items = activeCategory === 'all'
+        ? defaultGallery
+        : defaultGallery.filter(item => item.category.toLowerCase() === activeCategory.toLowerCase());
+
+      grid.innerHTML = items.map(item => `
+        <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--glass-shadow); cursor: pointer; transition: transform 0.2s ease;" class="gallery-card" data-img="${item.img}" data-cap="${item.title} - ${item.desc}">
+          <div style="position: relative; height: 220px; overflow: hidden; background: #0f172a;">
+            <img src="${item.img}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+            <span class="role-badge student" style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); font-size: 0.75rem;">
+              ${item.category}
+            </span>
+          </div>
+          <div style="padding: 1.25rem;">
+            <h3 style="font-size: 1.05rem; margin-bottom: 0.35rem;">${item.title}</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">${item.desc}</p>
+          </div>
+        </div>
+      `).join('');
+
+      grid.querySelectorAll('.gallery-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const imgUrl = card.getAttribute('data-img');
+          const caption = card.getAttribute('data-cap');
+          const imgEl = document.getElementById('lightbox-img');
+          const capEl = document.getElementById('lightbox-caption');
+          if (imgEl) imgEl.src = imgUrl;
+          if (capEl) capEl.textContent = caption;
+          shared.openModal('gallery-lightbox-modal');
+        });
+      });
+    }
+  </script>
+</body>
+</html>

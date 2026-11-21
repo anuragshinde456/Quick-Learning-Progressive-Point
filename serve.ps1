@@ -161,10 +161,20 @@ while ($listener.IsListening) {
             }
         }
 
-        # --- Static File Serving & SPA Clean URL Fallback ---
+        # --- Static File Serving & Multi-Page / Clean URL Routing ---
         if ($path -eq "/" -or [string]::IsNullOrWhiteSpace($path)) { $path = "/index.html" }
 
+        # Normalize known aliases
+        if ($path -eq "/student/dashboard") { $path = "/student-dashboard.html" }
+        elseif ($path -eq "/teacher/dashboard") { $path = "/teacher-dashboard.html" }
+        elseif ($path.StartsWith("/admin/")) { $path = "/admin-dashboard.html" }
+
         $filePath = Join-Path $root $path.TrimStart('/')
+
+        # Check direct path, or path with .html appended
+        if (-not (Test-Path $filePath -PathType Leaf) -and (Test-Path ($filePath + ".html") -PathType Leaf)) {
+            $filePath = $filePath + ".html"
+        }
 
         if (Test-Path $filePath -PathType Leaf) {
             $bytes = [System.IO.File]::ReadAllBytes($filePath)
@@ -189,10 +199,9 @@ while ($listener.IsListening) {
                 $response.OutputStream.Write($bytes, 0, $bytes.Length)
             }
         } else {
-            # SPA Clean URL Fallback: For routes without file extension (/about-us, /gallery, /student/dashboard, /admin/applicants, etc.)
-            $hasExt = [System.IO.Path]::HasExtension($path)
+            # Fallback for unrecognized routes
             $spaIndex = Join-Path $root "index.html"
-            if (-not $hasExt -and (Test-Path $spaIndex)) {
+            if (Test-Path $spaIndex) {
                 $bytes = [System.IO.File]::ReadAllBytes($spaIndex)
                 $response.ContentType = "text/html; charset=utf-8"
                 $response.StatusCode = 200

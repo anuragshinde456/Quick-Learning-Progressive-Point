@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Learning Portal - Quick Progressive Career Point Odisha</title>
+  <meta name="description" content="Student Learning Portal to track home tutor applications and manage assigned faculty in Odisha.">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="QPCP Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Career Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="index.html" class="nav-link" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link" data-page="gallery">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container"></div>
+
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html" class="mobile-nav-link" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div class="container">
+      <!-- Welcome Header -->
+      <div class="page-header-wrap" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+          <span class="role-badge student"><i class="fa-solid fa-graduation-cap"></i> Student Learning Portal</span>
+          <h1 class="page-title" id="welcome-title" style="margin-top: 0.35rem; font-size: 1.75rem;">Welcome back!</h1>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.25rem;" id="user-subhead">
+            Loading your profile details...
+          </div>
+        </div>
+        <div class="page-header-actions" style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary btn-sm" id="edit-profile-btn"><i class="fa-solid fa-user-gear"></i> Edit Profile</button>
+          <a href="index.html#tutors-section" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Find Tutors</a>
+        </div>
+      </div>
+
+      <!-- Dashboard Layout -->
+      <div class="dashboard-grid">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar-card">
+          <div class="user-profile-header" style="text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border);">
+            <img src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff" alt="Student Avatar" class="user-profile-avatar" id="sidebar-avatar" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; margin-bottom: 0.75rem; border: 3px solid var(--primary-light);">
+            <h3 id="sidebar-name" style="font-size: 1.15rem; margin-bottom: 0.2rem;">Student</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;" id="sidebar-username">@student</p>
+            <div style="font-size: 0.82rem; color: var(--primary); font-weight: 700; margin-top: 0.4rem;" id="sidebar-grade">-</div>
+            <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 0.2rem;" id="sidebar-location">-</div>
+          </div>
+
+          <ul class="sidebar-nav" id="student-nav-tabs">
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn active" data-tab="inquiries">
+                <i class="fa-solid fa-paper-plane"></i> My Applications <span class="badge" id="inq-count" style="margin-left: auto; background: var(--primary-light); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: var(--radius-full); font-size: 0.75rem;">0</span>
+              </button>
+            </li>
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn" data-tab="assigned">
+                <i class="fa-solid fa-user-check"></i> Assigned Faculty <span class="badge" id="asg-count" style="margin-left: auto; background: var(--accent-emerald-light); color: var(--accent-emerald); padding: 0.2rem 0.5rem; border-radius: var(--radius-full); font-size: 0.75rem;">0</span>
+              </button>
+            </li>
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn" data-tab="tutors">
+                <i class="fa-solid fa-chalkboard-user"></i> Browse Verified Tutors
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Main Tab Content -->
+        <div class="main-dash-content" id="student-tab-content">
+          <!-- Dynamic Content Rendered Here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="edit-profile-modal">
+      <div class="modal-card">
+        <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        <h2 class="modal-title">Edit Student Profile</h2>
+        <p class="modal-subtitle">Update your personal details below.</p>
+
+        <form id="profile-edit-form">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="edit-name" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phone Number (10 Digits)</label>
+            <input type="tel" class="form-control" id="edit-phone" required maxlength="10">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Grade / Course</label>
+            <input type="text" class="form-control" id="edit-grade" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">City / Locality in Odisha</label>
+            <input type="text" class="form-control" id="edit-location" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+            <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module">
+    import { store } from './store.js?v=20261122_v1';
+    import { shared } from './shared.js?v=20261122_v1';
+
+    let activeTab = 'inquiries';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Verify student auth
+      if (!shared.requireAuth(['student'])) return;
+
+      shared.init('student-dashboard');
+      hydrateProfile();
+
+      // Background Supabase sync
+      try {
+        await store.syncFromSupabase();
+        hydrateProfile();
+        renderTabContent();
+      } catch (e) {
+        console.warn('Sync note:', e);
+      }
+
+      // Tab switcher clicks
+      const tabBtns = document.querySelectorAll('#student-nav-tabs .sidebar-nav-btn');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeTab = btn.getAttribute('data-tab') || 'inquiries';
+          renderTabContent();
+        });
+      });
+
+      // Edit profile modal trigger
+      const editBtn = document.getElementById('edit-profile-btn');
+      if (editBtn) {
+        editBtn.addEventListener('click', () => {
+          const u = store.getCurrentUser();
+          if (u) {
+            document.getElementById('edit-name').value = u.name || '';
+            document.getElementById('edit-phone').value = (u.phone || '').replace(/[^0-9]/g, '').slice(-10);
+            document.getElementById('edit-grade').value = u.grade || '';
+            document.getElementById('edit-location').value = u.location || '';
+            shared.openModal('edit-profile-modal');
+          }
+        });
+      }
+
+      // Edit profile form submission
+      const editForm = document.getElementById('profile-edit-form');
+      if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const u = store.getCurrentUser();
+          if (!u) return;
+
+          const name = document.getElementById('edit-name').value.trim();
+          const rawPhone = document.getElementById('edit-phone').value.trim();
+          const grade = document.getElementById('edit-grade').value.trim();
+          const location = document.getElementById('edit-location').value.trim();
+
+          const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+          if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+            shared.showToast('Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.', 'error');
+            return;
+          }
+
+          try {
+            await store.updateUserProfile(u.id, {
+              name,
+              phone: `+91 ${cleanPhone}`,
+              grade,
+              location
+            });
+            shared.showToast('Profile updated successfully!', 'success');
+            shared.closeModal('edit-profile-modal');
+            hydrateProfile();
+          } catch (err) {
+            shared.showToast(err.message || 'Failed to update profile.', 'error');
+          }
+        });
+      }
+
+      renderTabContent();
+    });
+
+    function hydrateProfile() {
+      const user = store.getCurrentUser();
+      if (!user) return;
+
+      document.getElementById('welcome-title').textContent = `Welcome back, ${user.name || 'Student'}! 👋`;
+      document.getElementById('user-subhead').innerHTML = `
+        <i class="fa-solid fa-book-open" style="color: var(--primary);"></i> ${user.grade || 'General Study'} &nbsp;•&nbsp; 
+        <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${user.location || 'Odisha'}
+      `;
+
+      document.getElementById('sidebar-name').textContent = user.name || 'Student';
+      document.getElementById('sidebar-username').textContent = `@${user.username || 'student'}`;
+      document.getElementById('sidebar-grade').textContent = user.grade || 'Course: Not Set';
+      document.getElementById('sidebar-location').textContent = user.location || 'Odisha';
+
+      if (user.avatar) {
+        document.getElementById('sidebar-avatar').src = user.avatar;
+      }
+
+      const inqs = store.getInquiriesForStudent(user.id) || [];
+      const asgs = store.getAssignmentsForStudent(user.id) || [];
+      document.getElementById('inq-count').textContent = inqs.length;
+      document.getElementById('asg-count').textContent = asgs.length;
+    }
+
+    function renderTabContent() {
+      const user = store.getCurrentUser();
+      const container = document.getElementById('student-tab-content');
+      if (!user || !container) return;
+
+      if (activeTab === 'inquiries') {
+        const inqs = store.getInquiriesForStudent(user.id) || [];
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">My Home Tutor Applications</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Track the real-time status of your 1-on-1 home tutor applications across Odisha.</p>
+
+          ${inqs.length === 0 ? `
+            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 3rem 1.5rem; text-align: center; border-radius: var(--radius-lg);">
+              <i class="fa-solid fa-folder-open" style="font-size: 2.8rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+              <h3>No Tutor Applications Yet</h3>
+              <p style="color: var(--text-muted); margin-bottom: 1.25rem;">Explore verified home faculty and apply for 1-on-1 tutoring at your home!</p>
+              <a href="index.html#tutors-section" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Browse Verified Tutors</a>
+            </div>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+              ${inqs.map(inq => {
+                const isAssigned = inq.status === 'assigned';
+                const statusBadge = isAssigned
+                  ? `<span class="role-badge verified_teacher"><i class="fa-solid fa-circle-check"></i> Assigned by Admin</span>`
+                  : `<span class="role-badge teacher_applicant"><i class="fa-solid fa-hourglass-half"></i> Under Admin Review</span>`;
+
+                const dateStr = inq.createdAt ? new Date(inq.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently';
+
+                return `
+                  <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--glass-shadow);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                      <div>
+                        <h3 style="font-size: 1.1rem; margin-bottom: 0.2rem;">${inq.subject || 'General'} Home Tutoring</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Requested Faculty: <strong>${inq.teacherName || 'Faculty'}</strong></p>
+                      </div>
+                      ${statusBadge}
+                    </div>
+
+                    <div style="background: var(--bg-main); border: 1px solid var(--glass-border); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.85rem; margin-bottom: 1rem;">
+                      <p style="margin: 0; color: var(--text-muted);"><strong>Application Note:</strong> ${inq.message || 'Applied for 1-on-1 home tutoring via QPCP Odisha.'}</p>
+                      <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 0.4rem;">Submitted: ${dateStr}</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                      <a href="https://wa.me/917008221300?text=${encodeURIComponent(`Hello QPCP Admin, I am checking the status of my home tutor application for ${inq.teacherName || 'Faculty'}.`)}" target="_blank" class="btn btn-whatsapp btn-sm">
+                        <i class="fa-brands fa-whatsapp"></i> Chat with Admin on WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        `;
+      } else if (activeTab === 'assigned') {
+        const asgs = store.getAssignmentsForStudent(user.id) || [];
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Officially Assigned Home Faculty</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Tutors officially paired with you by Admin for 1-on-1 home learning.</p>
+
+          ${asgs.length === 0 ? `
+            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 3rem 1.5rem; text-align: center; border-radius: var(--radius-lg);">
+              <i class="fa-solid fa-clipboard-user" style="font-size: 2.8rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+              <h3>No Assigned Faculty Yet</h3>
+              <p style="color: var(--text-muted); margin-bottom: 1.25rem;">Once the Admin reviews and confirms your tutor match, they will appear here with scheduling details.</p>
+              <a href="index.html#tutors-section" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Explore Tutors</a>
+            </div>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+              ${asgs.map(asg => `
+                <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--glass-shadow);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <div>
+                      <span class="role-badge verified_teacher" style="font-size: 0.72rem; margin-bottom: 0.4rem;"><i class="fa-solid fa-circle-check"></i> Active Home Tutor</span>
+                      <h3 style="font-size: 1.15rem; margin-top: 0.2rem;">${asg.teacherName || 'Assigned Tutor'}</h3>
+                      <p style="color: var(--text-muted); font-size: 0.85rem;">Assigned by: Admin (${asg.assignedBy || 'QPCP HQ'})</p>
+                    </div>
+                    <a href="https://wa.me/917008221300?text=${encodeURIComponent(`Hello QPCP, I have questions regarding my assigned home tutor ${asg.teacherName}.`)}" target="_blank" class="btn btn-whatsapp btn-sm">
+                      <i class="fa-brands fa-whatsapp"></i> Contact Admin
+                    </a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        `;
+      } else if (activeTab === 'tutors') {
+        const teachers = store.getVerifiedTeachers() || [];
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Verified Home Faculty Directory</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Browse verified educators across Odisha and request home tutoring directly.</p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
+            ${teachers.map(t => {
+              const subs = Array.isArray(t.subjects) ? t.subjects.join(', ') : t.subjects;
+              const waUrl = `https://wa.me/917008221300?text=${encodeURIComponent(`Hello QPCP, I am student ${user.name} and want to book tutor ${t.name} (${subs}).`)}`;
+              return `
+                <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--glass-shadow);">
+                  <div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">
+                      <img src="${t.avatar || 'https://ui-avatars.com/api/?name=Tutor'}" alt="${t.name}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover;">
+                      <div>
+                        <h4 style="font-size: 1rem; margin: 0;">${t.name}</h4>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${t.location}</div>
+                      </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.35rem;">${subs}</p>
+                    <div style="font-size: 0.88rem; color: var(--accent-emerald); font-weight: 700; margin-bottom: 1rem;">₹${t.rate}/hr</div>
+                  </div>
+                  <a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-sm" style="width: 100%; text-align: center;">
+                    <i class="fa-brands fa-whatsapp"></i> Book This Tutor
+                  </a>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

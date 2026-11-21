@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Onboarding Application - Quick Progressive Career Point Odisha</title>
+  <meta name="description" content="Apply to join Quick Progressive Career Point as a verified 1-on-1 home tutor across Bhubaneswar, Cuttack, Rourkela, Sambalpur, and all 30 districts of Odisha.">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="QPCP Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Career Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="index.html" class="nav-link" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link" data-page="gallery">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container"></div>
+
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html" class="mobile-nav-link" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+    <div style="width: 100%; max-width: 680px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); box-shadow: var(--glass-shadow); padding: 2.25rem;">
+      
+      <div style="text-align: center; margin-bottom: 1.75rem;">
+        <span class="role-badge verified_teacher" style="font-size: 0.8rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-chalkboard-user"></i> Faculty Onboarding</span>
+        <h1 style="font-size: 1.65rem; margin-bottom: 0.35rem;">Apply as Home Tutor</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Join Odisha's premier 1-on-1 home tutoring network. Admin will review your demo video & interview you before approving.</p>
+      </div>
+
+      <form id="teacher-signup-form">
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" id="tch-name" required placeholder="e.g. Dr. Rajesh Verma" minlength="2" maxlength="60">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unique Username *</label>
+            <input type="text" class="form-control" id="tch-username" required placeholder="e.g. rajesh_physics" minlength="3" maxlength="25">
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Phone Number * (10 Digits)</label>
+            <input type="tel" class="form-control" id="tch-phone" required placeholder="e.g. 9876543210" maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" id="tch-email" required placeholder="e.g. rajesh@example.com">
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Subjects You Can Teach (Comma Separated) *</label>
+            <input type="text" class="form-control" id="tch-subjects" required placeholder="Physics, Mathematics, JEE Prep">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Per Hour Fee (₹) *</label>
+            <input type="number" class="form-control" id="tch-rate" required placeholder="e.g. 500" min="100" max="10000">
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Teaching Experience *</label>
+            <input type="text" class="form-control" id="tch-experience" required placeholder="e.g. 5+ Years in JEE Coaching">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teaching City / Locality in Odisha *</label>
+            <input type="text" class="form-control" id="tch-location" required placeholder="e.g. Patia & Infocity, Bhubaneswar">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Demo Video Link (Optional - YouTube embed link 30s-5min)</label>
+          <input type="url" class="form-control" id="tch-video" placeholder="https://www.youtube.com/embed/...">
+          <span class="form-hint" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Parents watch this 30s-5m video to preview your teaching style!</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bio & Qualifications (Optional)</label>
+          <textarea class="form-control" id="tch-bio" rows="3" placeholder="Describe your degrees, past board topper results, and home mentoring methodology..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Upload CV / Resume (Optional - PDF, DOC, or Image)</label>
+          <input type="file" class="form-control file-input-custom" id="tch-cv-file" accept=".pdf,image/*,.doc,.docx">
+          <input type="hidden" id="tch-cv-base64" value="">
+          <span class="form-hint" id="tch-cv-name" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Select CV file from your phone or device</span>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Create Password *</label>
+            <input type="password" class="form-control" id="tch-pass" required placeholder="At least 6 characters" minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profile Photo (Optional)</label>
+            <div class="file-upload-preview-wrap" style="display: flex; gap: 0.75rem; align-items: center;">
+              <img id="tch-avatar-preview" src="https://ui-avatars.com/api/?name=Faculty&background=059669&color=fff" class="avatar-preview-img" alt="Avatar Preview" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+              <div style="flex: 1;">
+                <input type="file" class="form-control file-input-custom" id="tch-avatar-file" accept="image/*">
+                <input type="hidden" id="tch-avatar-base64" value="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-teacher-portal" id="tch-submit-btn" style="width: 100%; margin-top: 1.25rem; padding: 0.85rem; font-size: 1rem;">
+          <i class="fa-solid fa-paper-plane"></i> Submit Home Tutor Application
+        </button>
+      </form>
+
+      <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border); text-align: center; font-size: 0.88rem; color: var(--text-muted);">
+        Already an approved faculty member? <br>
+        <a href="login.html?tab=teacher" style="font-weight: 700; color: var(--accent-emerald);">Login to Faculty Portal Here</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module">
+    import { store } from './store.js?v=20261122_v1';
+    import { shared } from './shared.js?v=20261122_v1';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      shared.init('signup-teacher');
+
+      // Avatar preview
+      const avatarFile = document.getElementById('tch-avatar-file');
+      const avatarPreview = document.getElementById('tch-avatar-preview');
+      const avatarBase64 = document.getElementById('tch-avatar-base64');
+
+      if (avatarFile) {
+        avatarFile.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (file.size > 3 * 1024 * 1024) {
+            shared.showToast('Profile image must be less than 3MB.', 'error');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            avatarPreview.src = evt.target.result;
+            avatarBase64.value = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // CV File selection
+      const cvFile = document.getElementById('tch-cv-file');
+      const cvBase64 = document.getElementById('tch-cv-base64');
+      const cvNameHint = document.getElementById('tch-cv-name');
+
+      if (cvFile) {
+        cvFile.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (file.size > 8 * 1024 * 1024) {
+            shared.showToast('CV file must be less than 8MB.', 'error');
+            return;
+          }
+          cvNameHint.textContent = `Selected: ${file.name}`;
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            cvBase64.value = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Form submit
+      const form = document.getElementById('teacher-signup-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('tch-name').value.trim();
+        const username = document.getElementById('tch-username').value.trim();
+        const rawPhone = document.getElementById('tch-phone').value.trim();
+        const email = document.getElementById('tch-email').value.trim();
+        const subjects = document.getElementById('tch-subjects').value.trim();
+        const rate = Number(document.getElementById('tch-rate').value) || 500;
+        const experience = document.getElementById('tch-experience').value.trim();
+        const location = document.getElementById('tch-location').value.trim();
+        const videoUrl = document.getElementById('tch-video').value.trim();
+        const bio = document.getElementById('tch-bio').value.trim();
+        const password = document.getElementById('tch-pass').value;
+        const submitBtn = document.getElementById('tch-submit-btn');
+
+        // Phone check
+        const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+        if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+          shared.showToast('Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.', 'error');
+          return;
+        }
+
+        // Username check
+        if (!/^[a-zA-Z0-9_]{3,25}$/.test(username)) {
+          shared.showToast('Username must be 3-25 alphanumeric characters (underscores allowed).', 'error');
+          return;
+        }
+
+        const avatar = avatarBase64.value || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=059669&color=fff`;
+
+        const teacherData = {
+          name,
+          username,
+          phone: `+91 ${cleanPhone}`,
+          email,
+          subjects,
+          rate,
+          experience,
+          location,
+          videoUrl: videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+          bio: bio || 'Experienced home tutor in Odisha.',
+          cvUrl: cvBase64.value || '',
+          password,
+          avatar
+        };
+
+        const origHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting Application...';
+
+        try {
+          await store.registerTeacher(teacherData);
+          shared.showToast('Application submitted! Under Admin review.', 'success');
+          setTimeout(() => {
+            window.location.href = 'teacher-dashboard.html';
+          }, 400);
+        } catch (err) {
+          shared.showToast(err.message || 'Application failed. Username may already exist.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origHtml;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,1 +1,14 @@
-/*    /index.html   200
+/about               /about.html             200
+/gallery             /gallery.html           200
+/login               /login.html             200
+/signup-student      /signup-student.html    200
+/signup-teacher      /signup-teacher.html    200
+/student-dashboard   /student-dashboard.html 200
+/teacher-dashboard   /teacher-dashboard.html 200
+/admin-dashboard     /admin-dashboard.html   200
+/student/dashboard   /student-dashboard.html 301
+/teacher/dashboard   /teacher-dashboard.html 301
+/admin/applicants    /admin-dashboard.html   301
+/admin/tutors        /admin-dashboard.html   301
+/admin/students      /admin-dashboard.html   301
+/*                   /index.html             200

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Command Center - Quick Progressive Career Point Odisha</title>
+  <meta name="description" content="Central administrative command center for QPCP Odisha. Review teacher applicants, approve tutors, and assign home slots.">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="QPCP Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Career Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="index.html" class="nav-link" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link" data-page="gallery">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container"></div>
+
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html" class="mobile-nav-link" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div class="container">
+      <div class="page-header-wrap" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+          <span class="role-badge admin"><i class="fa-solid fa-user-shield"></i> System Administrator (QPCP Odisha HQ)</span>
+          <h1 class="page-title" style="margin-top: 0.35rem; font-size: 1.75rem;">Admin Command Center</h1>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.25rem;">Manage teacher applicants, verified faculty, students, and home tutoring pairs across Odisha.</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary btn-sm" id="refresh-db-btn"><i class="fa-solid fa-rotate"></i> Sync Cloud Database</button>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar-card">
+          <ul class="sidebar-nav" id="admin-nav-tabs">
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn active" data-tab="applicants">
+                <i class="fa-solid fa-id-card"></i> Tutor Applications <span class="badge" id="badge-applicants" style="margin-left: auto; background: #fef3c7; color: var(--accent-amber); padding: 0.2rem 0.5rem; border-radius: var(--radius-full); font-size: 0.75rem;">0</span>
+              </button>
+            </li>
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn" data-tab="teachers">
+                <i class="fa-solid fa-chalkboard-user"></i> Verified Faculty <span class="badge" id="badge-teachers" style="margin-left: auto; background: #ecfdf5; color: var(--accent-emerald); padding: 0.2rem 0.5rem; border-radius: var(--radius-full); font-size: 0.75rem;">0</span>
+              </button>
+            </li>
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn" data-tab="students">
+                <i class="fa-solid fa-user-graduate"></i> Student Directory <span class="badge" id="badge-students" style="margin-left: auto; background: var(--primary-light); color: var(--primary); padding: 0.2rem 0.5rem; border-radius: var(--radius-full); font-size: 0.75rem;">0</span>
+              </button>
+            </li>
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn" data-tab="inquiries">
+                <i class="fa-solid fa-comments"></i> Inquiries & Requests
+              </button>
+            </li>
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn" data-tab="assign">
+                <i class="fa-solid fa-link"></i> Assign Home Tutor
+              </button>
+            </li>
+            <li class="sidebar-nav-item">
+              <button class="sidebar-nav-btn" data-tab="security">
+                <i class="fa-solid fa-key"></i> User Security & Reset
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-dash-content" id="admin-tab-content">
+          <div style="text-align: center; padding: 3rem 1rem;">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+            <p style="color: var(--text-muted); margin-top: 0.75rem;">Loading admin dashboard data...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Demo Player Modal -->
+    <div class="modal-overlay" id="admin-video-modal">
+      <div class="modal-card lg">
+        <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        <div id="admin-video-content"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module">
+    import { store } from './store.js?v=20261122_v1';
+    import { shared } from './shared.js?v=20261122_v1';
+
+    let activeTab = 'applicants';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Verify admin auth
+      if (!shared.requireAuth(['admin'])) return;
+
+      shared.init('admin-dashboard');
+
+      // Sync data
+      await loadAndRender();
+
+      // Manual sync button
+      const refreshBtn = document.getElementById('refresh-db-btn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+          refreshBtn.disabled = true;
+          refreshBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Syncing...';
+          await loadAndRender();
+          shared.showToast('Cloud database synchronized successfully!', 'success');
+          refreshBtn.disabled = false;
+          refreshBtn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sync Cloud Database';
+        });
+      }
+
+      // Tab switcher clicks
+      const tabBtns = document.querySelectorAll('#admin-nav-tabs .sidebar-nav-btn');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeTab = btn.getAttribute('data-tab') || 'applicants';
+          renderActiveTab();
+        });
+      });
+    });
+
+    async function loadAndRender() {
+      try {
+        await store.syncFromSupabase();
+      } catch (e) {
+        console.warn('Sync note:', e);
+      }
+      updateCounts();
+      renderActiveTab();
+    }
+
+    function updateCounts() {
+      const applicants = store.getTeacherApplicantsAdmin() || [];
+      const teachers = store.getVerifiedTeachers() || [];
+      const students = store.getStudentsFullAdmin() || [];
+
+      document.getElementById('badge-applicants').textContent = applicants.length;
+      document.getElementById('badge-teachers').textContent = teachers.length;
+      document.getElementById('badge-students').textContent = students.length;
+    }
+
+    function renderActiveTab() {
+      const container = document.getElementById('admin-tab-content');
+      if (!container) return;
+
+      updateCounts();
+
+      // TAB 1: TEACHER APPLICANTS
+      if (activeTab === 'applicants') {
+        const applicants = store.getTeacherApplicantsAdmin() || [];
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Pending Home Tutor Applications (Odisha)</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Review recorded demo videos, conduct WhatsApp interview, and click Approve to publish live across Odisha.</p>
+
+          ${applicants.length === 0 ? `
+            <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 3rem 1.5rem; text-align: center; border-radius: var(--radius-lg);">
+              <i class="fa-solid fa-circle-check" style="font-size: 2.8rem; color: var(--accent-emerald); margin-bottom: 1rem;"></i>
+              <h3>All Applications Reviewed</h3>
+              <p style="color: var(--text-muted);">There are no pending home tutor applications waiting for review.</p>
+            </div>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+              ${applicants.map(app => {
+                const subs = Array.isArray(app.subjects) ? app.subjects.join(', ') : (app.subjects || 'General');
+                const avatar = app.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(app.name)}&background=059669&color=fff`;
+                const cleanPhone = (app.phone || '').replace(/[^0-9]/g, '');
+                const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hello ${app.name}, this is Quick Progressive Career Point Odisha Admin regarding your home tutor application.`)}`;
+
+                return `
+                  <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--glass-shadow);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                      <div style="display: flex; gap: 0.85rem; align-items: center;">
+                        <img src="${avatar}" alt="${app.name}" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover;">
+                        <div>
+                          <h3 style="font-size: 1.15rem; margin-bottom: 0.2rem;">${app.name} <span style="font-size: 0.8rem; color: var(--text-dim); font-weight: 400;">(@${app.username})</span></h3>
+                          <div style="color: var(--accent-emerald); font-weight: 700; font-size: 0.9rem;">₹${app.rate || 500}/hr • ${app.experience || 'Experienced'}</div>
+                          <div style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${app.location || 'Odisha'}</div>
+                        </div>
+                      </div>
+                      <span class="role-badge teacher_applicant">Pending Admin Review</span>
+                    </div>
+
+                    <div style="background: var(--bg-main); border: 1px solid var(--glass-border); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.85rem; margin-bottom: 1rem;">
+                      <div><strong>Subjects:</strong> ${subs}</div>
+                      <div style="margin-top: 0.25rem;"><strong>Phone:</strong> ${app.phone || '-'} &nbsp;•&nbsp; <strong>Email:</strong> ${app.email || '-'}</div>
+                      <div style="margin-top: 0.35rem;"><strong>Bio:</strong> ${app.bio || 'None provided.'}</div>
+                      ${app.cvUrl ? `
+                        <div style="margin-top: 0.5rem;">
+                          <a href="${app.cvUrl}" download="${(app.name || 'Candidate').replace(/\s+/g, '_')}_CV" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;">
+                            <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> View / Download Uploaded CV
+                          </a>
+                        </div>
+                      ` : ''}
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                      <button class="btn btn-secondary btn-sm review-video-btn" data-id="${app.id}">
+                        <i class="fa-solid fa-film"></i> Review Demo Video
+                      </button>
+
+                      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-sm">
+                          <i class="fa-brands fa-whatsapp"></i> WhatsApp Interview
+                        </a>
+                        <button class="btn btn-primary btn-sm approve-tutor-btn" data-id="${app.id}" data-name="${app.name}">
+                          <i class="fa-solid fa-check"></i> Approve & Publish
+                        </button>
+                        <button class="btn btn-danger btn-sm reject-tutor-btn" data-id="${app.id}" data-name="${app.name}">
+                          <i class="fa-solid fa-trash-can"></i> Reject
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        `;
+
+        // Attach review video button
+        container.querySelectorAll('.review-video-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const aid = btn.getAttribute('data-id');
+            const tutor = (store.getTeacherApplicantsAdmin() || []).find(t => t.id === aid);
+            if (!tutor) return;
+            openAdminVideoModal(tutor);
+          });
+        });
+
+        // Attach approve button
+        container.querySelectorAll('.approve-tutor-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const aid = btn.getAttribute('data-id');
+            const aname = btn.getAttribute('data-name');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Approving...';
+
+            try {
+              await store.approveTeacherApplicant(aid);
+              shared.showToast(`Home tutor "${aname}" approved & published live!`, 'success');
+              renderActiveTab();
+            } catch (err) {
+              shared.showToast(err.message || 'Approval failed.', 'error');
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fa-solid fa-check"></i> Approve & Publish';
+            }
+          });
+        });
+
+        // Attach reject button
+        container.querySelectorAll('.reject-tutor-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const aid = btn.getAttribute('data-id');
+            const aname = btn.getAttribute('data-name');
+            if (!confirm(`Are you sure you want to reject and remove application for "${aname}"?`)) return;
+
+            btn.disabled = true;
+            try {
+              await store.removeUser(aid);
+              shared.showToast(`Application for "${aname}" rejected and removed.`, 'info');
+              renderActiveTab();
+            } catch (err) {
+              shared.showToast(err.message || 'Action failed.', 'error');
+              btn.disabled = false;
+            }
+          });
+        });
+      }
+
+      // TAB 2: VERIFIED FACULTY
+      else if (activeTab === 'teachers') {
+        const teachers = store.getVerifiedTeachers() || [];
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Active Verified Home Faculty (${teachers.length})</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Educators currently verified, visible to students, and active for home tutoring.</p>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Faculty</th>
+                  <th>City / Locality</th>
+                  <th>Subjects</th>
+                  <th>Rate/Hr</th>
+                  <th>Phone & Email</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${teachers.map(t => {
+                  const subs = Array.isArray(t.subjects) ? t.subjects.join(', ') : t.subjects;
+                  return `
+                    <tr>
+                      <td>
+                        <div class="table-user-cell" style="display: flex; gap: 0.5rem; align-items: center;">
+                          <img src="${t.avatar || 'https://ui-avatars.com/api/?name=Tutor'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                          <div>
+                            <strong>${t.name}</strong>
+                            <div style="font-size: 0.72rem; color: var(--text-dim);">@${t.username}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>${t.location || 'Odisha'}</td>
+                      <td>${subs || 'All Subjects'}</td>
+                      <td><strong style="color: var(--accent-emerald);">₹${t.rate}/hr</strong></td>
+                      <td>${t.phone || '-'}<br><span style="font-size: 0.78rem; color: var(--text-muted);">${t.email || '-'}</span></td>
+                      <td>
+                        <button class="btn btn-danger btn-sm delete-user-btn" data-id="${t.id}" data-name="${t.name}">
+                          <i class="fa-solid fa-trash-can"></i> Remove
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        container.querySelectorAll('.delete-user-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.getAttribute('data-id');
+            const uname = btn.getAttribute('data-name');
+            if (!confirm(`Are you sure you want to remove "${uname}" from the platform?`)) return;
+
+            try {
+              await store.removeUser(uid);
+              shared.showToast(`Faculty member "${uname}" removed.`, 'info');
+              renderActiveTab();
+            } catch (err) {
+              shared.showToast(err.message || 'Failed to remove user.', 'error');
+            }
+          });
+        });
+      }
+
+      // TAB 3: STUDENTS
+      else if (activeTab === 'students') {
+        const students = store.getStudentsFullAdmin() || [];
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Registered Student Directory (${students.length})</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Registered students seeking home tutoring in Odisha.</p>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>City / Locality</th>
+                  <th>Grade / Exam Prep</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${students.map(s => `
+                  <tr>
+                    <td>
+                      <div class="table-user-cell" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <img src="${s.avatar || 'https://ui-avatars.com/api/?name=Student'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                        <div>
+                          <strong>${s.name}</strong>
+                          <div style="font-size: 0.72rem; color: var(--text-dim);">@${s.username}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>${s.location || 'Odisha'}</td>
+                    <td>${s.grade || '-'}</td>
+                    <td><strong>${s.phone || '-'}</strong></td>
+                    <td>${s.email || '-'}</td>
+                    <td>
+                      <button class="btn btn-danger btn-sm delete-user-btn" data-id="${s.id}" data-name="${s.name}">
+                        <i class="fa-solid fa-trash-can"></i> Remove
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        container.querySelectorAll('.delete-user-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.getAttribute('data-id');
+            const uname = btn.getAttribute('data-name');
+            if (!confirm(`Are you sure you want to remove student "${uname}"?`)) return;
+
+            try {
+              await store.removeUser(uid);
+              shared.showToast(`Student "${uname}" removed.`, 'info');
+              renderActiveTab();
+            } catch (err) {
+              shared.showToast(err.message || 'Failed to remove user.', 'error');
+            }
+          });
+        });
+      }
+
+      // TAB 4: INQUIRIES & REQUESTS
+      else if (activeTab === 'inquiries') {
+        const inqs = store.data.inquiries || [];
+        const reqs = store.data.teacherRequests || [];
+
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Tutoring Inquiries & Faculty Requests</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Review student home tutor requests and faculty applications to teach.</p>
+
+          <h3 style="font-size: 1.1rem; color: var(--primary); margin-bottom: 0.75rem;">1. Student Requests for Tutors (${inqs.length})</h3>
+          <div class="data-table-wrap" style="margin-bottom: 2.5rem;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student Name</th>
+                  <th>Requested Faculty</th>
+                  <th>Subject</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${inqs.length === 0 ? `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No student inquiries found.</td></tr>` : inqs.map(i => `
+                  <tr>
+                    <td><strong>${i.studentName}</strong></td>
+                    <td>${i.teacherName}</td>
+                    <td>${i.subject}</td>
+                    <td>${i.createdAt ? new Date(i.createdAt).toLocaleDateString() : '-'}</td>
+                    <td>
+                      <button class="btn btn-primary btn-sm pair-btn" data-tid="${i.teacherId}" data-sid="${i.studentId}">
+                        <i class="fa-solid fa-link"></i> Confirm Pair
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="font-size: 1.1rem; color: var(--accent-emerald); margin-bottom: 0.75rem;">2. Teacher Requests to Teach Students (${reqs.length})</h3>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Faculty Name</th>
+                  <th>Requested Student</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${reqs.length === 0 ? `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No teacher teach-requests found.</td></tr>` : reqs.map(r => `
+                  <tr>
+                    <td><strong>${r.teacherName}</strong></td>
+                    <td>${r.studentName}</td>
+                    <td>${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}</td>
+                    <td>
+                      <button class="btn btn-primary btn-sm pair-btn" data-tid="${r.teacherId}" data-sid="${r.studentId}">
+                        <i class="fa-solid fa-check"></i> Assign Pair
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        container.querySelectorAll('.pair-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const tid = btn.getAttribute('data-tid');
+            const sid = btn.getAttribute('data-sid');
+            btn.disabled = true;
+
+            try {
+              await store.assignTeacherToStudent(tid, sid);
+              shared.showToast('Home tutor successfully paired with student!', 'success');
+              renderActiveTab();
+            } catch (err) {
+              shared.showToast(err.message || 'Pairing failed.', 'error');
+              btn.disabled = false;
+            }
+          });
+        });
+      }
+
+      // TAB 5: MANUAL ASSIGN MATRIX
+      else if (activeTab === 'assign') {
+        const teachers = store.getVerifiedTeachers() || [];
+        const students = store.getStudentsFullAdmin() || [];
+
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">Manual Home Tutor - Student Pairing Matrix</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Select an approved home tutor and a student to officially assign a home tutoring slot.</p>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2rem; max-width: 600px; box-shadow: var(--glass-shadow);">
+            <form id="manual-assign-form">
+              <div class="form-group">
+                <label class="form-label">Select Verified Home Faculty</label>
+                <select class="form-control" id="select-tutor" required style="background: #fff;">
+                  ${teachers.map(t => `<option value="${t.id}">${t.name} (${t.location} • ₹${t.rate}/hr)</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Select Registered Student</label>
+                <select class="form-control" id="select-student" required style="background: #fff;">
+                  ${students.map(s => `<option value="${s.id}">${s.name} (${s.location} • ${s.grade})</option>`).join('')}
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.25rem;">
+                <i class="fa-solid fa-link"></i> Confirm Home Tutoring Pair
+              </button>
+            </form>
+          </div>
+        `;
+
+        const assignForm = document.getElementById('manual-assign-form');
+        if (assignForm) {
+          assignForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const tid = document.getElementById('select-tutor').value;
+            const sid = document.getElementById('select-student').value;
+
+            try {
+              await store.assignTeacherToStudent(tid, sid);
+              shared.showToast('Home tutor successfully paired with student!', 'success');
+              activeTab = 'inquiries';
+              renderActiveTab();
+            } catch (err) {
+              shared.showToast(err.message || 'Pairing failed.', 'error');
+            }
+          });
+        }
+      }
+
+      // TAB 6: SECURITY & PASSWORD RESET
+      else if (activeTab === 'security') {
+        const allUsers = store.getAllUsersAdmin() || [];
+        container.innerHTML = `
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.85rem;">User Security & Password Reset</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Reset user passwords securely in compliance with the CIA Triad.</p>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.75rem; max-width: 620px; box-shadow: var(--glass-shadow); margin-bottom: 2rem;">
+            <form id="admin-reset-form">
+              <div class="form-group">
+                <label class="form-label">Select User to Reset Password</label>
+                <select class="form-control" id="reset-user-select" required style="background: #fff;">
+                  ${allUsers.map(u => `<option value="${u.id}">${u.name} (@${u.username} - ${u.role})</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Temporary Password (Min 6 characters)</label>
+                <input type="text" class="form-control" id="reset-new-pwd" required minlength="6" placeholder="e.g. Temp@2026">
+              </div>
+
+              <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">
+                <i class="fa-solid fa-key"></i> Set Temporary Password
+              </button>
+            </form>
+          </div>
+        `;
+
+        const resetForm = document.getElementById('admin-reset-form');
+        if (resetForm) {
+          resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const uid = document.getElementById('reset-user-select').value;
+            const newPwd = document.getElementById('reset-new-pwd').value.trim();
+
+            try {
+              await store.adminResetUserPassword(uid, newPwd);
+              shared.showToast('Temporary password updated successfully in database!', 'success');
+              document.getElementById('reset-new-pwd').value = '';
+            } catch (err) {
+              shared.showToast(err.message || 'Failed to reset password.', 'error');
+            }
+          });
+        }
+      }
+    }
+
+    function openAdminVideoModal(tutor) {
+      const modal = document.getElementById('admin-video-modal');
+      const content = document.getElementById('admin-video-content');
+      const videoSrc = tutor.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+
+      content.innerHTML = `
+        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
+          <img src="${tutor.avatar || 'https://ui-avatars.com/api/?name=Tutor'}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+          <div>
+            <h3 style="font-size: 1.2rem; margin: 0;">${tutor.name} - Demo Lecture Video</h3>
+            <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem;">Location: ${tutor.location} • Fee: ₹${tutor.rate}/hr</p>
+          </div>
+        </div>
+
+        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius-md); background: #000; margin-bottom: 1.25rem;">
+          <iframe src="${videoSrc}" title="Applicant Demo" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 1rem;">${tutor.bio || 'No bio provided.'}</p>
+      `;
+
+      shared.openModal('admin-video-modal');
+    }
+  </script>
+</body>
+</html>

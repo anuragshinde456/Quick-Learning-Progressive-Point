@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Quick Progressive Career Point Odisha</title>
+  <meta name="description" content="Sign in to your Student Portal, Teacher Faculty Portal, or Admin Command Center for Quick Progressive Career Point Odisha.">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="QPCP Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Career Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="index.html" class="nav-link" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link" data-page="gallery">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container"></div>
+
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html" class="mobile-nav-link" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+    <div style="width: 100%; max-width: 480px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); box-shadow: var(--glass-shadow); padding: 2rem;">
+      
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.65rem; margin-bottom: 0.35rem;">Portal Login</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in to access your dashboard and records.</p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="tab-switcher" id="login-tabs" style="margin-bottom: 1.75rem;">
+        <button class="tab-btn active" data-role="student">Student</button>
+        <button class="tab-btn" data-role="teacher">Teacher</button>
+        <button class="tab-btn" data-role="admin">Admin</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="universal-login-form">
+        <div class="form-group">
+          <label class="form-label" id="login-user-label">Student Username or Email</label>
+          <input type="text" class="form-control" id="login-username" required placeholder="Enter username or email address" autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label class="form-label" style="margin: 0;">Password</label>
+            <button type="button" id="toggle-pwd-btn" style="background: none; border: none; color: var(--primary); font-size: 0.8rem; cursor: pointer;">
+              <i class="fa-solid fa-eye"></i> Show
+            </button>
+          </div>
+          <input type="password" class="form-control" id="login-password" required placeholder="Enter your password" autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="login-submit-btn" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 1rem;">
+          <i class="fa-solid fa-right-to-bracket"></i> Login to Portal
+        </button>
+      </form>
+
+      <!-- Registration Links -->
+      <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border); text-align: center; font-size: 0.88rem; color: var(--text-muted);">
+        <div id="signup-hint-student">
+          New student seeking 1-on-1 home tutors? <br>
+          <a href="signup-student.html" style="font-weight: 700; color: var(--primary);">Join as Student Here</a>
+        </div>
+        <div id="signup-hint-teacher" style="display: none;">
+          Educator looking to teach at students' homes? <br>
+          <a href="signup-teacher.html" style="font-weight: 700; color: var(--accent-emerald);">Apply as Home Tutor</a>
+        </div>
+        <div id="signup-hint-admin" style="display: none;">
+          Need support or password reset? <br>
+          <a href="https://wa.me/917008221300" target="_blank" style="font-weight: 700; color: var(--accent-emerald);">Contact Tech Support</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module">
+    import { store } from './store.js?v=20261122_v1';
+    import { shared } from './shared.js?v=20261122_v1';
+
+    let currentRoleHint = 'student';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      shared.init('login');
+
+      // Check URL parameters for tab
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab');
+      if (tabParam && ['student', 'teacher', 'admin'].includes(tabParam)) {
+        switchTab(tabParam);
+      }
+
+      // If user is already logged in, redirect them immediately to their dashboard
+      const existingUser = store.getCurrentUser();
+      if (existingUser) {
+        redirectUser(existingUser);
+      }
+
+      // Tab switcher clicks
+      const tabButtons = document.querySelectorAll('#login-tabs .tab-btn');
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const role = btn.getAttribute('data-role');
+          switchTab(role);
+        });
+      });
+
+      // Toggle password visibility
+      const togglePwdBtn = document.getElementById('toggle-pwd-btn');
+      const pwdInput = document.getElementById('login-password');
+      if (togglePwdBtn && pwdInput) {
+        togglePwdBtn.addEventListener('click', () => {
+          if (pwdInput.type === 'password') {
+            pwdInput.type = 'text';
+            togglePwdBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Hide';
+          } else {
+            pwdInput.type = 'password';
+            togglePwdBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Show';
+          }
+        });
+      }
+
+      // Login form submission
+      const form = document.getElementById('universal-login-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usernameInput = document.getElementById('login-username').value.trim();
+        const passwordInput = document.getElementById('login-password').value;
+        const submitBtn = document.getElementById('login-submit-btn');
+
+        if (!usernameInput || !passwordInput) {
+          shared.showToast('Please enter both username/email and password.', 'error');
+          return;
+        }
+
+        const origHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...';
+
+        try {
+          const user = await store.login(usernameInput, passwordInput, currentRoleHint);
+          shared.showToast(`Welcome back, ${user.name || user.username}!`, 'success');
+          setTimeout(() => {
+            redirectUser(user);
+          }, 400);
+        } catch (err) {
+          shared.showToast(err.message || 'Login failed. Please check credentials.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origHtml;
+        }
+      });
+    });
+
+    function switchTab(role) {
+      currentRoleHint = role;
+      document.querySelectorAll('#login-tabs .tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-role') === role);
+      });
+
+      const userLabel = document.getElementById('login-user-label');
+      const submitBtn = document.getElementById('login-submit-btn');
+      const hintStudent = document.getElementById('signup-hint-student');
+      const hintTeacher = document.getElementById('signup-hint-teacher');
+      const hintAdmin = document.getElementById('signup-hint-admin');
+
+      hintStudent.style.display = 'none';
+      hintTeacher.style.display = 'none';
+      hintAdmin.style.display = 'none';
+
+      if (role === 'student') {
+        userLabel.textContent = 'Student Username or Email';
+        submitBtn.className = 'btn btn-primary';
+        submitBtn.innerHTML = '<i class="fa-solid fa-graduation-cap"></i> Student Login';
+        hintStudent.style.display = 'block';
+      } else if (role === 'teacher') {
+        userLabel.textContent = 'Teacher Username or Email';
+        submitBtn.className = 'btn btn-teacher-portal';
+        submitBtn.innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Teacher Login';
+        hintTeacher.style.display = 'block';
+      } else {
+        userLabel.textContent = 'Admin Username';
+        submitBtn.className = 'btn btn-secondary';
+        submitBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Admin Command Login';
+        hintAdmin.style.display = 'block';
+      }
+    }
+
+    function redirectUser(user) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectParam = urlParams.get('redirect');
+
+      if (redirectParam && redirectParam.endsWith('.html')) {
+        window.location.href = redirectParam;
+        return;
+      }
+
+      if (user.role === 'admin') {
+        window.location.href = 'admin-dashboard.html';
+      } else if (user.role === 'verified_teacher' || user.role === 'teacher_applicant') {
+        window.location.href = 'teacher-dashboard.html';
+      } else {
+        window.location.href = 'student-dashboard.html';
+      }
+    }
+  </script>
+</body>
+</html>

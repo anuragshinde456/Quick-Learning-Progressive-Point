@@ -2,62 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <title>Quick Progressive Career Point - Premier Home Tutoring Across Odisha</title>
   <meta name="description" content="Quick Progressive Career Point connects verified expert home tutors across Odisha (Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur) with students for 1-on-1 personalized learning.">
   
-  <!-- Universal Instant SPA Route Interceptor (Guarantees zero native GET requests or full-page reloads) -->
-  <script>
-    window.__pendingPath = null;
-    window.navigateTo = function(path, e) {
-      if (e) {
-        if (typeof e.preventDefault === 'function') e.preventDefault();
-        if (typeof e.stopPropagation === 'function') e.stopPropagation();
-      }
-      if (window.app && typeof window.app.navigateTo === 'function') {
-        window.app.navigateTo(path, e);
-      } else {
-        window.__pendingPath = path;
-        try {
-          if (window.location.pathname !== path) {
-            history.pushState(null, '', path);
-          }
-        } catch (_) {}
-      }
-      return false;
-    };
-    window.openPrivacyModal = function(type) {
-      if (window.app && typeof window.app.openPrivacyModal === 'function') {
-        window.app.openPrivacyModal(type);
-      }
-      return false;
-    };
-  </script>
-
-  <!-- Favicon (Google Search & Mobile Compliant) -->
-  <link rel="icon" type="image/png" href="https://qpcp.in/assets/logo.png">
-  <link rel="shortcut icon" href="https://qpcp.in/favicon.ico">
-  <link rel="apple-touch-icon" href="https://qpcp.in/assets/logo.png">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
 
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20260929_mobileroute1">
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
 </head>
 <body>
 
   <!-- Header Navigation -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="/" class="brand-logo" onclick="window.navigateTo('/', event); return false;">
+      <a href="index.html" class="brand-logo">
         <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
         <div class="brand-title">
           Quick Progressive <span>Career Point</span>
@@ -65,16 +33,16 @@
       </a>
 
       <ul class="nav-links desktop-only">
-        <li><a href="/" class="nav-link active" data-path="/" onclick="window.navigateTo('/', event); return false;">Home</a></li>
-        <li><a href="/about-us" class="nav-link" data-path="/about-us" onclick="window.navigateTo('/about-us', event); return false;">About Us</a></li>
-        <li><a href="/gallery" class="nav-link" data-path="/gallery" onclick="window.navigateTo('/gallery', event); return false;">Gallery</a></li>
+        <li><a href="index.html" class="nav-link active" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link" data-page="gallery">Gallery</a></li>
       </ul>
 
       <div class="auth-buttons desktop-only" id="nav-auth-container">
-        <!-- Dynamic Header Actions filled by app.js -->
+        <!-- Hydrated dynamically by shared.js -->
       </div>
 
-      <button class="mobile-menu-btn" onclick="if(window.app)app.toggleMobileMenu()" aria-label="Toggle Navigation" type="button">
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
         <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
       </button>
     </div>
@@ -82,32 +50,19 @@
     <!-- Mobile Navigation Drawer -->
     <div class="mobile-drawer" id="mobile-drawer">
       <ul class="mobile-nav-links">
-        <li><a href="/" class="mobile-nav-link" data-path="/" onclick="window.navigateTo('/', event); if(window.app)app.toggleMobileMenu(); return false;"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
-        <li><a href="/about-us" class="mobile-nav-link" data-path="/about-us" onclick="window.navigateTo('/about-us', event); if(window.app)app.toggleMobileMenu(); return false;"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
-        <li><a href="/gallery" class="mobile-nav-link" data-path="/gallery" onclick="window.navigateTo('/gallery', event); if(window.app)app.toggleMobileMenu(); return false;"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+        <li><a href="index.html" class="mobile-nav-link active" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
       </ul>
-      <div class="mobile-auth-container" id="mobile-auth-container">
-        <!-- Filled dynamically by app.js -->
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;">
+        <!-- Hydrated dynamically by shared.js -->
       </div>
     </div>
   </header>
 
-  <!-- Dynamic Page Content Root -->
-  <main id="app-root">
-    <script>
-      (function() {
-        var p = (window.__pendingPath || window.location.pathname).replace(/\/$/, '') || '/';
-        if (window.location.hash) {
-          var h = window.location.hash.replace(/^[#/]+/, '');
-          if (h) p = '/' + h;
-        }
-        if (p !== '/' && p !== '/home' && p !== '/index.html') {
-          document.write('<style>#home-static-view{display:none !important;}</style><div id="page-pre-loader" style="min-height:75vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;padding:2rem;"><div style="width:40px;height:40px;border:3px solid rgba(37,99,235,0.15);border-top-color:#2563eb;border-radius:50%;animation:spin 0.7s linear infinite;"></div><p style="color:#64748b;font-size:0.92rem;font-weight:500;">Loading page...</p><style>@keyframes spin{to{transform:rotate(360deg)}}</style></div>');
-        }
-      })();
-    </script>
-    <div id="home-static-view">
-    <!-- Hero Section (Default View) -->
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-content">
@@ -118,21 +73,21 @@
             Find Premier <span class="gradient-text">Home Tutors in Odisha</span>
           </h1>
           <p class="hero-desc">
-            Quick Progressive Career Point connects students across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur & all over Odisha with top 1-on-1 home tutors. Watch 30s to 5-min recorded intro videos and apply instantly via WhatsApp.
+            Quick Progressive Career Point connects students across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur & all 30 districts of Odisha with top 1-on-1 home tutors. Watch 30s to 5-min recorded intro videos and apply instantly via WhatsApp.
           </p>
           <div class="hero-actions">
-            <button class="btn btn-primary" onclick="app.openStudentAuth('signup')">
+            <a href="signup-student.html" class="btn btn-primary">
               <i class="fa-solid fa-user-plus"></i> Join as Student
-            </button>
-            <button class="btn btn-teacher-portal" onclick="app.openTeacherAuth('signup')">
-              <i class="fa-solid fa-chalkboard-user"></i> Become a Teacher
-            </button>
+            </a>
+            <a href="signup-teacher.html" class="btn btn-teacher-portal">
+              <i class="fa-solid fa-chalkboard-user"></i> Become a Tutor
+            </a>
           </div>
 
           <div class="hero-stats">
             <div class="stat-item">
               <h3>500+</h3>
-              <p>Verified Tutors</p>
+              <p>Home Tutors</p>
             </div>
             <div class="stat-item">
               <h3>30 Districts</h3>
@@ -140,1158 +95,258 @@
             </div>
             <div class="stat-item">
               <h3>1-on-1</h3>
-              <p>Personalized Focus</p>
+              <p>At-Home Focus</p>
             </div>
           </div>
         </div>
 
         <div class="hero-image-wrapper">
-          <img src="assets/hero_education.jpg" alt="Quick Progressive Career Point Odisha" class="hero-img">
+          <img src="assets/hero_education.jpg" alt="Home Tutoring Across Odisha" class="hero-img">
           <div class="floating-badge">
             <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald); font-size: 1.8rem;"></i>
             <div>
-              <strong style="color: var(--text-main); font-size: 0.95rem;">100% Admin Verified</strong>
-              <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Every teacher is interviewed</p>
+              <strong style="color: var(--text-main); font-size: 0.95rem;">100% Admin Verified Tutors</strong>
+              <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">In-Person & Demo Video Screened</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Main Teachers Showcase Section -->
+    <!-- Tutors Directory Section -->
     <section class="section" id="tutors-section">
       <div class="container">
         <div class="section-header">
-          <span class="section-subtitle">Top Odisha Faculty</span>
-          <h2 class="section-title">Browse Expert Home Tutors</h2>
-          <p class="section-desc">Explore teacher qualifications, experience, hourly rates across Odisha, and watch their 30-sec to 5-min intro demo videos.</p>
+          <span class="section-subtitle">Top Odisha Home Faculty</span>
+          <h2 class="section-title">Browse Verified Home Tutors</h2>
+          <p class="section-desc">Explore tutor profiles, hourly charges, experience across Odisha cities, and watch their recorded 30s to 5-min intro videos.</p>
         </div>
 
         <!-- Filter & Search Bar -->
         <div class="filter-bar">
           <div class="search-input-wrap">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" id="teacher-search-input" placeholder="Search by tutor name, subject, or city/locality in Odisha..." onkeyup="app.filterTeachers()">
+            <input type="text" id="teacher-search-input" placeholder="Search by tutor name, subject, or Odisha city (e.g. Patia, Cuttack, Rourkela)...">
           </div>
 
           <div class="filter-chips" id="subject-filter-chips">
-            <button class="chip active" onclick="app.filterBySubject('all', this)">All Subjects</button>
-            <button class="chip" onclick="app.filterBySubject('Physics', this)">Physics</button>
-            <button class="chip" onclick="app.filterBySubject('Mathematics', this)">Mathematics</button>
-            <button class="chip" onclick="app.filterBySubject('Chemistry', this)">Chemistry</button>
-            <button class="chip" onclick="app.filterBySubject('Biology', this)">Biology</button>
+            <button class="chip active" data-subject="all">All Subjects</button>
+            <button class="chip" data-subject="Physics">Physics</button>
+            <button class="chip" data-subject="Mathematics">Mathematics</button>
+            <button class="chip" data-subject="Chemistry">Chemistry</button>
+            <button class="chip" data-subject="Biology">Biology</button>
           </div>
         </div>
 
         <!-- Teachers Grid -->
         <div class="teachers-grid" id="teachers-grid">
-          <!-- Filled dynamically by app.js -->
-        </div>
-      </div>
-    </section>
-
-    <!-- Why Choose Us / Features -->
-    <section class="section" id="features-section" style="background: #ffffff; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-subtitle">Excellence Guaranteed</span>
-          <h2 class="section-title">Why Quick Progressive Career Point?</h2>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
-          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 2rem; border-radius: var(--radius-lg);">
-            <div style="width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(37, 99, 235, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
-              <i class="fa-solid fa-circle-play"></i>
-            </div>
-            <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;">Interactive Demo Videos</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Watch 30s to 5-min demo lectures before choosing your teacher. Know their teaching style beforehand.</p>
-          </div>
-
-          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 2rem; border-radius: var(--radius-lg);">
-            <div style="width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(37, 211, 102, 0.2); color: #25D366; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
-              <i class="fa-brands fa-whatsapp"></i>
-            </div>
-            <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;">Instant WhatsApp Application</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Apply for your chosen teacher with one click. Pre-filled WhatsApp message directs your inquiry straight to admin & faculty.</p>
-          </div>
-
-          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); padding: 2rem; border-radius: var(--radius-lg);">
-            <div style="width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(225, 29, 72, 0.15); color: var(--accent-rose); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
-              <i class="fa-solid fa-user-shield"></i>
-            </div>
-            <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;">Strict Contact Privacy</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Teachers only see student name & grade. Phone numbers and emails remain 100% confidential with Admin.</p>
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+            <p style="color: var(--text-muted); margin-top: 0.75rem;">Loading verified home tutors across Odisha...</p>
           </div>
         </div>
       </div>
     </section>
-    </div><!-- /#home-static-view -->
+
+    <!-- Video Demo Player Modal -->
+    <div class="modal-overlay" id="video-demo-modal">
+      <div class="modal-card lg">
+        <button class="modal-close" aria-label="Close Modal"><i class="fa-solid fa-xmark"></i></button>
+        <div id="video-modal-content">
+          <!-- Dynamic Content -->
+        </div>
+      </div>
+    </div>
   </main>
 
-  <!-- Footer -->
+  <!-- Universal Footer -->
   <footer class="footer">
-    <div class="container footer-grid">
-      <div class="footer-brand">
-        <a href="/" class="brand-logo" onclick="window.navigateTo('/', event); return false;">
-          <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
-          <div class="brand-title">Quick Progressive <span>Career Point</span></div>
-        </a>
-        <p>Odisha's premier 1-on-1 home tutoring network connecting students with admin-verified expert tutors across all 30 districts including Bhubaneswar, Cuttack, Rourkela, Sambalpur & Berhampur.</p>
-      </div>
-
-      <div class="footer-col">
-        <h4>Quick Links</h4>
-        <ul class="footer-links">
-          <li><a href="/" onclick="window.navigateTo('/', event); return false;">Home</a></li>
-          <li><a href="/about-us" onclick="window.navigateTo('/about-us', event); return false;">About Us</a></li>
-          <li><a href="/gallery" onclick="window.navigateTo('/gallery', event); return false;">Gallery &amp; Achievements</a></li>
-          <li><a href="/privacy-policy" onclick="window.navigateTo('/privacy-policy', event); return false;"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Privacy Policy</a></li>
-          <li><a href="/terms" onclick="window.navigateTo('/terms', event); return false;"><i class="fa-solid fa-scale-balanced" style="color: var(--primary);"></i> Terms &amp; Limitation</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4>Portals & Login</h4>
-        <ul class="footer-links">
-          <li><a href="/student/login" onclick="window.navigateTo('/student/login', event); return false;"><i class="fa-solid fa-graduation-cap"></i> Student Portal</a></li>
-          <li><a href="/teacher/login" onclick="window.navigateTo('/teacher/login', event); return false;"><i class="fa-solid fa-chalkboard-user"></i> Verified Faculty</a></li>
-          <li><a href="/teacher/signup" onclick="window.navigateTo('/teacher/signup', event); return false;"><i class="fa-solid fa-file-signature"></i> Teacher Application</a></li>
-          <li><a href="/admin/login" onclick="window.navigateTo('/admin/login', event); return false;"><i class="fa-solid fa-user-shield"></i> Admin Command Center</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4>Support & Grievance</h4>
-        <ul class="footer-links">
-          <li><a href="https://wa.me/917008221300" target="_blank"><i class="fa-brands fa-whatsapp"></i> +91 70082 21300</a></li>
-          <li><a href="mailto:support@quickprogressive.edu.in"><i class="fa-solid fa-envelope"></i> support@quickprogressive.edu.in</a></li>
-          <li><a href="/privacy-policy" onclick="window.navigateTo('/privacy-policy', event); return false;"><i class="fa-solid fa-user-lock"></i> Grievance Officer</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <div class="container footer-bottom-flex">
-        <div>&copy; 2026 Quick Progressive Career Point (Odisha). All rights reserved.</div>
-        <div class="footer-legal-links">
-          <a href="/privacy-policy" onclick="window.navigateTo('/privacy-policy', event); return false;"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a>
-          <span class="divider">•</span>
-          <a href="/terms" onclick="window.navigateTo('/terms', event); return false;"><i class="fa-solid fa-scale-balanced"></i> Terms &amp; Limitation of Liability</a>
-        </div>
-      </div>
-    </div>
+    <!-- Hydrated dynamically by shared.js -->
   </footer>
 
-  <!-- MODALS -->
+  <!-- Page Logic -->
+  <script type="module">
+    import { store } from './store.js?v=20261122_v1';
+    import { shared } from './shared.js?v=20261122_v1';
 
-  <!-- 1. Student Auth Modal (Login / Signup) -->
-  <div class="modal-overlay" id="student-auth-modal" data-prevent-close="true">
-    <div class="modal-card">
-      <button class="modal-close" onclick="app.closeModal('student-auth-modal')"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div class="tab-switcher">
-        <button class="tab-btn active" id="student-tab-login" onclick="app.switchAuthTab('student', 'login')">Student Login</button>
-        <button class="tab-btn" id="student-tab-signup" onclick="app.switchAuthTab('student', 'signup')">Student Register</button>
-      </div>
+    let currentSubjectFilter = 'all';
+    let searchQuery = '';
 
-      <!-- Student Login Form -->
-      <form id="student-login-form" onsubmit="app.handleStudentLogin(event)">
-        <h2 class="modal-title">Welcome Back, Student!</h2>
-        <p class="modal-subtitle">Log in to view teachers and manage your learning applications.</p>
+    document.addEventListener('DOMContentLoaded', async () => {
+      shared.init('home');
 
-        <div class="form-group">
-          <label class="form-label">Username, Email or Phone</label>
-          <input type="text" class="form-control" id="std-login-user" required placeholder="Enter username, email or 10-digit mobile" maxlength="80">
-        </div>
+      // Initial render from existing memory/cache
+      renderTeachers();
 
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <div style="position: relative;">
-            <input type="password" class="form-control" id="std-login-pass" required placeholder="Enter your password" maxlength="64" style="padding-right: 2.75rem;">
-            <button type="button" onclick="app.togglePasswordVisibility('std-login-pass', this)" title="Show/Hide Password" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; font-size: 1rem;">
-              <i class="fa-solid fa-eye"></i>
-            </button>
+      // Sync fresh data from Supabase DB
+      try {
+        await store.syncFromSupabase();
+        renderTeachers();
+        shared.renderHeader('home');
+      } catch (e) {
+        console.warn('Sync notice:', e);
+      }
+
+      // Search input handler
+      const searchInput = document.getElementById('teacher-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          searchQuery = e.target.value.trim().toLowerCase();
+          renderTeachers();
+        });
+      }
+
+      // Subject chips handler
+      const chips = document.querySelectorAll('#subject-filter-chips .chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentSubjectFilter = chip.getAttribute('data-subject') || 'all';
+          renderTeachers();
+        });
+      });
+    });
+
+    function renderTeachers() {
+      const grid = document.getElementById('teachers-grid');
+      if (!grid) return;
+
+      let teachers = store.getVerifiedTeachers() || [];
+
+      // Filter by subject
+      if (currentSubjectFilter !== 'all') {
+        teachers = teachers.filter(t => {
+          if (!t.subjects) return false;
+          const subs = Array.isArray(t.subjects) ? t.subjects : [t.subjects];
+          return subs.some(s => s.toLowerCase().includes(currentSubjectFilter.toLowerCase()));
+        });
+      }
+
+      // Filter by search query
+      if (searchQuery) {
+        teachers = teachers.filter(t => {
+          const name = (t.name || '').toLowerCase();
+          const loc = (t.location || '').toLowerCase();
+          const subs = Array.isArray(t.subjects) ? t.subjects.join(' ').toLowerCase() : (t.subjects || '').toLowerCase();
+          return name.includes(searchQuery) || loc.includes(searchQuery) || subs.includes(searchQuery);
+        });
+      }
+
+      if (teachers.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--glass-border);">
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 2.8rem; color: var(--text-dim); margin-bottom: 1rem;"></i>
+            <h3>No Home Tutors Found</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Try adjusting your subject filter or search for cities like Bhubaneswar, Cuttack, Rourkela, or Sambalpur.</p>
           </div>
-        </div>
+        `;
+        return;
+      }
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-          <i class="fa-solid fa-right-to-bracket"></i> Login as Student
-        </button>
+      grid.innerHTML = teachers.map(t => {
+        const subs = Array.isArray(t.subjects) ? t.subjects.join(', ') : (t.subjects || 'All Subjects');
+        const rate = t.rate || 500;
+        const avatar = t.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name || 'Faculty')}&background=2563eb&color=fff`;
+        const location = t.location || 'Odisha';
+        const exp = t.experience || 'Experienced';
+        const bio = t.bio || 'Expert home tutor providing 1-on-1 personalized tutoring in Odisha.';
+        const waMsg = encodeURIComponent(`Hello Quick Progressive Career Point, I would like to book verified home tutor ${t.name} (${subs}) in ${location}.`);
+        const waUrl = `https://wa.me/917008221300?text=${waMsg}`;
 
-        <div class="form-hint" style="text-align: center; margin-top: 0.85rem; font-size: 0.8rem; color: var(--text-muted);">
-          Forgot Password? QPCP uses Administrator-managed manual resets (No automated OTP). 
-          <a href="https://wa.me/917008221300?text=Hello%20QPCP%20Admin,%20I%20forgot%20my%20Student%20account%20password.%20My%20registered%20name/phone%20is:%20" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline; display: inline-flex; align-items: center; gap: 0.25rem;">
-            <i class="fa-brands fa-whatsapp"></i> Request Reset from Admin
-          </a>
-        </div>
-      </form>
-
-      <!-- Student Signup Form -->
-      <form id="student-signup-form" style="display: none;" onsubmit="app.handleStudentSignup(event)">
-        <h2 class="modal-title">Student Registration</h2>
-        <p class="modal-subtitle">Create your student account to apply for expert home tutors in Odisha.</p>
-
-        <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input type="text" class="form-control" id="std-reg-name" required placeholder="Enter full name" minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+" title="Please enter a valid name (letters and spaces only)">
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Unique Username *</label>
-            <input type="text" class="form-control" id="std-reg-username" required placeholder="Choose a unique username" minlength="3" maxlength="25" pattern="[a-zA-Z0-9_]+" title="Usernames can only contain letters, numbers, and underscores">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Phone Number * (10 Digits)</label>
-            <input type="tel" class="form-control" id="std-reg-phone" required placeholder="Enter 10-digit mobile number" maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Email Address *</label>
-            <input type="email" class="form-control" id="std-reg-email" required placeholder="Enter email address" maxlength="80">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Password *</label>
-            <div style="position: relative;">
-              <input type="password" class="form-control" id="std-reg-pass" required placeholder="••••••••" minlength="8" maxlength="64" oninput="app.checkPasswordStrength(this.value, 'std')" style="padding-right: 2.75rem;">
-              <button type="button" onclick="app.togglePasswordVisibility('std-reg-pass', this)" title="Show/Hide Password" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; font-size: 1rem;">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="password-policy-box" id="std-pass-policy">
-          <div class="policy-title"><i class="fa-solid fa-shield-halved"></i> Strong Password Policy:</div>
-          <ul class="policy-list">
-            <li id="std-req-len"><i class="fa-solid fa-circle-xmark"></i> 8+ characters</li>
-            <li id="std-req-upper"><i class="fa-solid fa-circle-xmark"></i> Uppercase letter (A-Z)</li>
-            <li id="std-req-lower"><i class="fa-solid fa-circle-xmark"></i> Lowercase letter (a-z)</li>
-            <li id="std-req-num"><i class="fa-solid fa-circle-xmark"></i> Number (0-9)</li>
-            <li id="std-req-special" style="grid-column: span 2;"><i class="fa-solid fa-circle-xmark"></i> Special symbol (!@#$%^&* etc.)</li>
-          </ul>
-        </div>
-
-        <div class="form-group" style="margin-top: 0.85rem;">
-          <label class="form-label">What are you studying / Grade *</label>
-          <input type="text" class="form-control" id="std-reg-grade" required placeholder="e.g. Class 12 CBSE, JEE Prep, NEET Prep" minlength="2" maxlength="100">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">City / Locality in Odisha *</label>
-          <input type="text" class="form-control" id="std-reg-location" required placeholder="e.g. Patia (Bhubaneswar), Cuttack, Rourkela" minlength="2" maxlength="100">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Profile Picture (Select from device)</label>
-          <div class="file-upload-preview-wrap">
-            <img id="std-reg-avatar-preview" src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff" class="avatar-preview-img" alt="Avatar Preview">
-            <div style="flex: 1;">
-              <input type="file" class="form-control file-input-custom" id="std-reg-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'std-reg-avatar-preview', 'std-reg-avatar-base64')">
-              <input type="hidden" id="std-reg-avatar-base64" value="">
-              <span class="form-hint" style="margin-top: 0.2rem;">Select photo from your phone or computer</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Terms and Privacy Policy Agreement Checkbox -->
-        <div class="form-group simple-terms-group">
-          <label class="simple-terms-label" for="std-reg-consent">
-            <input type="checkbox" id="std-reg-consent" required>
-            <span>
-              By selecting "Complete Registration", you confirm that you have read and agree to Quick Progressive Career Point's 
-              <a href="/terms" onclick="app.openPrivacyModal('terms'); return false;">Terms of Service</a> and 
-              <a href="/privacy-policy" onclick="app.openPrivacyModal('dpdp'); return false;">Privacy Policy</a>.
-            </span>
-          </label>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.75rem;">
-          <i class="fa-solid fa-user-plus"></i> Complete Registration
-        </button>
-      </form>
-
-    </div>
-  </div>
-
-  <!-- 2. Teacher Auth Modal (Login / Signup) -->
-  <div class="modal-overlay" id="teacher-auth-modal" data-prevent-close="true">
-    <div class="modal-card lg">
-      <button class="modal-close" onclick="app.closeModal('teacher-auth-modal')"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div class="tab-switcher">
-        <button class="tab-btn active" id="teacher-tab-login" onclick="app.switchAuthTab('teacher', 'login')">Teacher Login</button>
-        <button class="tab-btn" id="teacher-tab-signup" onclick="app.switchAuthTab('teacher', 'signup')">Apply as Faculty</button>
-      </div>
-
-      <!-- Teacher Login Form -->
-      <form id="teacher-login-form" onsubmit="app.handleTeacherLogin(event)">
-        <h2 class="modal-title">Faculty Portal Login</h2>
-        <p class="modal-subtitle">Log in to view student inquiries and manage assigned teaching slots.</p>
-
-        <div class="form-group">
-          <label class="form-label">Username, Email or Phone</label>
-          <input type="text" class="form-control" id="tch-login-user" required placeholder="Enter username, email or 10-digit mobile" maxlength="80">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <div style="position: relative;">
-            <input type="password" class="form-control" id="tch-login-pass" required placeholder="Enter your password" maxlength="64" style="padding-right: 2.75rem;">
-            <button type="button" onclick="app.togglePasswordVisibility('tch-login-pass', this)" title="Show/Hide Password" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; font-size: 1rem;">
-              <i class="fa-solid fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 1rem;">
-          <i class="fa-solid fa-chalkboard-user"></i> Login to Faculty Portal
-        </button>
-
-        <div class="form-hint" style="text-align: center; margin-top: 0.85rem; font-size: 0.8rem; color: var(--text-muted);">
-          Forgot Password? QPCP operates via Administrator-managed manual resets (No automated OTP). 
-          <a href="https://wa.me/917008221300?text=Hello%20QPCP%20Admin,%20I%20forgot%20my%20Faculty%20account%20password.%20My%20registered%20name/phone%20is:%20" target="_blank" style="color: var(--accent-emerald); font-weight: 600; text-decoration: underline; display: inline-flex; align-items: center; gap: 0.25rem;">
-            <i class="fa-brands fa-whatsapp"></i> Request Reset from Admin
-          </a>
-        </div>
-      </form>
-
-      <!-- Teacher Application Form -->
-      <form id="teacher-signup-form" style="display: none;" onsubmit="app.handleTeacherSignup(event)">
-        <h2 class="modal-title">Faculty Application Form</h2>
-        <p class="modal-subtitle">Apply to join Quick Progressive Career Point across Odisha. Admin will review your details & interview you before approving.</p>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Full Name *</label>
-            <input type="text" class="form-control" id="tch-reg-name" required placeholder="Enter full name" minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+" title="Please enter a valid name (letters and spaces only)">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Unique Username *</label>
-            <input type="text" class="form-control" id="tch-reg-username" required placeholder="Choose a unique username" minlength="3" maxlength="25" pattern="[a-zA-Z0-9_]+" title="Usernames can only contain letters, numbers, and underscores">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Phone Number * (10 Digits)</label>
-            <input type="tel" class="form-control" id="tch-reg-phone" required placeholder="Enter 10-digit mobile number" maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email Address *</label>
-            <input type="email" class="form-control" id="tch-reg-email" required placeholder="Enter email address" maxlength="80">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Subjects You Can Teach (Comma Separated) *</label>
-            <input type="text" class="form-control" id="tch-reg-subjects" required placeholder="Physics, Mathematics, JEE Prep" minlength="2" maxlength="150">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Per Hour Charges (₹) *</label>
-            <input type="number" class="form-control" id="tch-reg-rate" required placeholder="e.g. 500" min="100" max="10000">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Teaching Experience *</label>
-            <input type="text" class="form-control" id="tch-reg-experience" required placeholder="e.g. 5 Years" maxlength="30">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Teaching City / Locality in Odisha *</label>
-            <input type="text" class="form-control" id="tch-reg-location" required placeholder="e.g. Bhubaneswar, Cuttack, Rourkela, Odisha" minlength="2" maxlength="100">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Demo Video Link (Optional - YouTube embed link or direct video URL 30s-5min)</label>
-          <input type="url" class="form-control" id="tch-reg-video" placeholder="https://www.youtube.com/embed/..." maxlength="250">
-          <span class="form-hint">Students will watch this 30s-5min demo video to introduce yourself!</span>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Bio & Qualifications (Optional)</label>
-          <textarea class="form-control" id="tch-reg-bio" placeholder="Describe your teaching methodology, degrees, and past results..." maxlength="500"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Upload CV / Resume (Optional - PDF, DOC, or Image)</label>
-          <div class="file-upload-preview-wrap">
-            <div style="flex: 1;">
-              <input type="file" class="form-control file-input-custom" id="tch-reg-cv-file" accept=".pdf,image/*,.doc,.docx" onchange="app.handleCvFileSelect(event, 'tch-reg-cv-base64', 'tch-reg-cv-name')">
-              <input type="hidden" id="tch-reg-cv-base64" value="">
-              <span class="form-hint" id="tch-reg-cv-name" style="margin-top: 0.25rem; display: block;">Select CV file from your phone or computer</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Password *</label>
-            <div style="position: relative;">
-              <input type="password" class="form-control" id="tch-reg-pass" required placeholder="••••••••" minlength="8" maxlength="64" oninput="app.checkPasswordStrength(this.value, 'tch')" style="padding-right: 2.75rem;">
-              <button type="button" onclick="app.togglePasswordVisibility('tch-reg-pass', this)" title="Show/Hide Password" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; font-size: 1rem;">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Profile Picture (Select from device)</label>
-            <div class="file-upload-preview-wrap">
-              <img id="tch-reg-avatar-preview" src="https://ui-avatars.com/api/?name=Faculty&background=2563eb&color=fff" class="avatar-preview-img" alt="Avatar Preview">
-              <div style="flex: 1;">
-                <input type="file" class="form-control file-input-custom" id="tch-reg-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'tch-reg-avatar-preview', 'tch-reg-avatar-base64')">
-                <input type="hidden" id="tch-reg-avatar-base64" value="">
+        return `
+          <div class="teacher-card">
+            <div class="teacher-header">
+              <div class="teacher-avatar-wrap">
+                <img src="${avatar}" alt="${t.name}" class="teacher-avatar">
+                <button class="play-demo-btn" data-id="${t.id}" title="Watch Demo Video">
+                  <i class="fa-solid fa-play"></i>
+                </button>
+              </div>
+              <div class="teacher-meta">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                  <h3 class="teacher-name">${t.name}</h3>
+                  <span class="role-badge verified_teacher" style="font-size: 0.7rem;"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                </div>
+                <div class="teacher-subject">${subs}</div>
+                <div class="teacher-loc"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${location}</div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="password-policy-box" id="tch-pass-policy">
-          <div class="policy-title"><i class="fa-solid fa-shield-halved"></i> Strong Password Policy:</div>
-          <ul class="policy-list">
-            <li id="tch-req-len"><i class="fa-solid fa-circle-xmark"></i> 8+ characters</li>
-            <li id="tch-req-upper"><i class="fa-solid fa-circle-xmark"></i> Uppercase letter (A-Z)</li>
-            <li id="tch-req-lower"><i class="fa-solid fa-circle-xmark"></i> Lowercase letter (a-z)</li>
-            <li id="tch-req-num"><i class="fa-solid fa-circle-xmark"></i> Number (0-9)</li>
-            <li id="tch-req-special" style="grid-column: span 2;"><i class="fa-solid fa-circle-xmark"></i> Special symbol (!@#$%^&* etc.)</li>
-          </ul>
-        </div>
+            <div class="teacher-body">
+              <div class="teacher-rate-badge">
+                <span class="rate-label">Hourly Fee</span>
+                <span class="rate-val">₹${rate}<span>/hr</span></span>
+              </div>
+              <div class="teacher-rate-badge">
+                <span class="rate-label">Experience</span>
+                <span class="rate-val">${exp}</span>
+              </div>
+            </div>
 
-        <!-- Terms and Privacy Policy Agreement Checkbox -->
-        <div class="form-group simple-terms-group">
-          <label class="simple-terms-label" for="tch-reg-consent">
-            <input type="checkbox" id="tch-reg-consent" required>
-            <span>
-              By selecting "Submit Teacher Application", you confirm that you have read and agree to Quick Progressive Career Point's 
-              <a href="/terms" onclick="app.openPrivacyModal('terms'); return false;">Terms of Service</a> and 
-              <a href="/privacy-policy" onclick="app.openPrivacyModal('dpdp'); return false;">Privacy Policy</a>.
-            </span>
-          </label>
-        </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 0.85rem 0 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${bio}
+            </p>
 
-        <button type="submit" class="btn btn-teacher-portal" style="width: 100%; margin-top: 0.75rem;">
-          <i class="fa-solid fa-paper-plane"></i> Submit Teacher Application
-        </button>
-      </form>
-
-    </div>
-  </div>
-
-  <!-- 3. Teacher Video Intro Modal -->
-  <div class="modal-overlay" id="video-demo-modal">
-    <div class="modal-card lg">
-      <button class="modal-close" onclick="app.closeModal('video-demo-modal')"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div id="video-modal-content">
-        <!-- Rendered by app.js -->
-      </div>
-    </div>
-  </div>
-
-  <!-- 4a. Student Edit Profile Modal -->
-  <div class="modal-overlay" id="student-edit-modal">
-    <div class="modal-card" style="max-width: 540px;">
-      <button class="modal-close" onclick="app.closeModal('student-edit-modal')"><i class="fa-solid fa-xmark"></i></button>
-      <h2 class="modal-title"><i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Edit Student Profile</h2>
-      <p class="modal-subtitle">Update your learning profile, contact info, grade, and locality across Odisha.</p>
-
-      <form id="student-edit-form" onsubmit="app.handleUpdateStudentProfile(event)">
-        <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input type="text" class="form-control" id="edit-std-name" required minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label">Phone Number *</label>
-            <input type="tel" class="form-control" id="edit-std-phone" required placeholder="e.g. +91 70082 21300 or 10-digit number">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email Address</label>
-            <input type="email" class="form-control" id="edit-std-email" placeholder="student@example.com">
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label">Class / Grade *</label>
-            <input type="text" class="form-control" id="edit-std-grade" required placeholder="e.g. Class 10 (CBSE)">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Locality & City in Odisha *</label>
-            <input type="text" class="form-control" id="edit-std-location" required placeholder="e.g. Patia, Bhubaneswar">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Profile Picture (Select from device)</label>
-          <div class="file-upload-preview-wrap">
-            <img id="edit-std-avatar-preview" src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff" class="avatar-preview-img" alt="Avatar Preview">
-            <div style="flex: 1;">
-              <input type="file" class="form-control file-input-custom" id="edit-std-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'edit-std-avatar-preview', 'edit-std-avatar-base64')">
-              <input type="hidden" id="edit-std-avatar-base64" value="">
+            <div class="teacher-card-actions">
+              <button class="btn btn-secondary btn-sm watch-video-btn" data-id="${t.id}">
+                <i class="fa-solid fa-film"></i> Demo Video
+              </button>
+              <a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-sm">
+                <i class="fa-brands fa-whatsapp"></i> Book Tutor
+              </a>
             </div>
           </div>
-        </div>
+        `;
+      }).join('');
 
-        <div class="form-group">
-          <label class="form-label">Username (Read-only)</label>
-          <input type="text" class="form-control" id="edit-std-username" disabled style="opacity: 0.6;">
-        </div>
+      // Attach video modal click handlers
+      grid.querySelectorAll('.play-demo-btn, .watch-video-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tid = btn.getAttribute('data-id');
+          openVideoModal(tid);
+        });
+      });
+    }
 
-        <div class="form-group" style="margin-top: 0.5rem; border-top: 1px dashed var(--glass-border); padding-top: 0.85rem;">
-          <label class="form-label" for="edit-std-password">New Password <span style="font-size: 0.76rem; color: var(--text-muted);">(Leave blank to keep unchanged)</span></label>
-          <input type="password" class="form-control" id="edit-std-password" placeholder="Minimum 8 characters with upper, lower, number">
-        </div>
+    function openVideoModal(teacherId) {
+      const teacher = store.getTeacherById(teacherId);
+      if (!teacher) return;
 
-        <button type="submit" class="btn btn-primary" id="btn-save-std-profile" style="width: 100%; margin-top: 1rem;">
-          <i class="fa-solid fa-floppy-disk"></i> Save Student Profile
-        </button>
-      </form>
-    </div>
-  </div>
+      const content = document.getElementById('video-modal-content');
+      const subs = Array.isArray(teacher.subjects) ? teacher.subjects.join(', ') : teacher.subjects;
+      const videoSrc = teacher.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+      const waMsg = encodeURIComponent(`Hello Admin, I watched the demo video and want to book home tutor ${teacher.name} (${subs}) in ${teacher.location}.`);
+      const waUrl = `https://wa.me/917008221300?text=${waMsg}`;
 
-  <!-- 4b. Teacher Edit Profile Modal -->
-  <div class="modal-overlay" id="teacher-edit-modal">
-    <div class="modal-card" style="max-width: 580px;">
-      <button class="modal-close" onclick="app.closeModal('teacher-edit-modal')"><i class="fa-solid fa-xmark"></i></button>
-      <h2 class="modal-title"><i class="fa-solid fa-chalkboard-user" style="color: var(--accent-emerald);"></i> Edit Faculty Profile</h2>
-      <p class="modal-subtitle">Update your home tutoring rate, subjects, teaching experience, and bio across Odisha.</p>
-
-      <form id="teacher-edit-form" onsubmit="app.handleUpdateTeacherProfile(event)">
-        <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input type="text" class="form-control" id="edit-tch-name" required minlength="2" maxlength="50" pattern="[a-zA-Z\s.]+">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label">Phone Number *</label>
-            <input type="tel" class="form-control" id="edit-tch-phone" required placeholder="e.g. +91 70082 21300 or 10-digit number">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email Address *</label>
-            <input type="email" class="form-control" id="edit-tch-email" required placeholder="tutor@example.com">
+      content.innerHTML = `
+        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
+          <img src="${teacher.avatar}" alt="${teacher.name}" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover;">
+          <div>
+            <h2 style="font-size: 1.25rem; margin: 0;">${teacher.name} - Recorded Intro Demo</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.2rem 0 0;">${subs} • ₹${teacher.rate}/hr • ${teacher.location}</p>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label">Hourly Rate (₹ / hr) *</label>
-            <input type="number" class="form-control" id="edit-tch-rate" required min="100" max="10000" placeholder="e.g. 500">
+        <div class="video-responsive" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius-md); background: #000; margin-bottom: 1.25rem;">
+          <iframe src="${videoSrc}" title="${teacher.name} Demo Video" style="position: absolute; top:0; left:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 1.25rem; line-height: 1.6;">${teacher.bio || ''}</p>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--glass-border); flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <span style="color: var(--text-dim); font-size: 0.78rem; display: block;">HOME TUTORING RATE</span>
+            <strong style="color: var(--accent-emerald); font-size: 1.25rem;">₹${teacher.rate || 500} / hour</strong>
           </div>
-          <div class="form-group">
-            <label class="form-label">Teaching Experience *</label>
-            <input type="text" class="form-control" id="edit-tch-experience" required placeholder="e.g. 6 Years, 8+ Years">
-          </div>
+          <a href="${waUrl}" target="_blank" class="btn btn-whatsapp">
+            <i class="fa-brands fa-whatsapp"></i> Book Home Tutor (${teacher.name})
+          </a>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">City / Locality in Odisha *</label>
-          <input type="text" class="form-control" id="edit-tch-location" required placeholder="e.g. Saheed Nagar, Bhubaneswar">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Subjects Taught * (Comma separated)</label>
-          <input type="text" class="form-control" id="edit-tch-subjects" required placeholder="e.g. Mathematics, Physics, Chemistry">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Demo Video URL (Optional)</label>
-          <input type="url" class="form-control" id="edit-tch-video" placeholder="https://youtube.com/... or Google Drive link">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">About Faculty / Bio</label>
-          <textarea class="form-control" id="edit-tch-bio" rows="3" placeholder="Brief description of your qualifications, teaching methodology, and student mentoring approach..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Profile Picture (Select from device)</label>
-          <div class="file-upload-preview-wrap">
-            <img id="edit-tch-avatar-preview" src="https://ui-avatars.com/api/?name=Faculty&background=059669&color=fff" class="avatar-preview-img" alt="Avatar Preview">
-            <div style="flex: 1;">
-              <input type="file" class="form-control file-input-custom" id="edit-tch-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'edit-tch-avatar-preview', 'edit-tch-avatar-base64')">
-              <input type="hidden" id="edit-tch-avatar-base64" value="">
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Username (Read-only)</label>
-          <input type="text" class="form-control" id="edit-tch-username" disabled style="opacity: 0.6;">
-        </div>
-
-        <div class="form-group" style="margin-top: 0.5rem; border-top: 1px dashed var(--glass-border); padding-top: 0.85rem;">
-          <label class="form-label" for="edit-tch-password">New Password <span style="font-size: 0.76rem; color: var(--text-muted);">(Leave blank to keep unchanged)</span></label>
-          <input type="password" class="form-control" id="edit-tch-password" placeholder="Minimum 8 characters with upper, lower, number">
-        </div>
-
-        <button type="submit" class="btn btn-primary" id="btn-save-tch-profile" style="width: 100%; margin-top: 1rem;">
-          <i class="fa-solid fa-floppy-disk"></i> Save Faculty Profile
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- 4c. Admin Edit Profile Modal -->
-  <div class="modal-overlay" id="admin-edit-modal">
-    <div class="modal-card" style="max-width: 520px;">
-      <button class="modal-close" onclick="app.closeModal('admin-edit-modal')"><i class="fa-solid fa-xmark"></i></button>
-      <h2 class="modal-title"><i class="fa-solid fa-user-gear" style="color: var(--accent-rose);"></i> Edit Administrator Profile</h2>
-      <p class="modal-subtitle">Update official QPCP Odisha HQ administrative contact information and display details.</p>
-
-      <form id="admin-edit-form" onsubmit="app.handleUpdateAdminProfile(event)">
-        <div class="form-group">
-          <label class="form-label">Administrator Name / Title *</label>
-          <input type="text" class="form-control" id="edit-adm-name" required minlength="2" maxlength="50">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label">Official Hotline / Phone *</label>
-            <input type="tel" class="form-control" id="edit-adm-phone" required placeholder="+91 70082 21300">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Official Email *</label>
-            <input type="email" class="form-control" id="edit-adm-email" required placeholder="admin@quickprogressive.edu.in">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">HQ Office Location</label>
-          <input type="text" class="form-control" id="edit-adm-location" placeholder="e.g. Master Canteen, Bhubaneswar, Odisha">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Profile Picture / Seal (Select from device)</label>
-          <div class="file-upload-preview-wrap">
-            <img id="edit-adm-avatar-preview" src="https://ui-avatars.com/api/?name=Admin&background=e11d48&color=fff" class="avatar-preview-img" alt="Avatar Preview">
-            <div style="flex: 1;">
-              <input type="file" class="form-control file-input-custom" id="edit-adm-avatar-file" accept="image/*" onchange="app.handleImageFileSelect(event, 'edit-adm-avatar-preview', 'edit-adm-avatar-base64')">
-              <input type="hidden" id="edit-adm-avatar-base64" value="">
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Username (Read-only)</label>
-          <input type="text" class="form-control" id="edit-adm-username" disabled style="opacity: 0.6;">
-        </div>
-
-        <div class="form-group" style="margin-top: 0.5rem; border-top: 1px dashed var(--glass-border); padding-top: 0.85rem;">
-          <label class="form-label" for="edit-adm-password">New Password <span style="font-size: 0.76rem; color: var(--text-muted);">(Leave blank to keep unchanged)</span></label>
-          <input type="password" class="form-control" id="edit-adm-password" placeholder="Minimum 8 characters with upper, lower, number">
-        </div>
-
-        <button type="submit" class="btn btn-primary" id="btn-save-adm-profile" style="width: 100%; margin-top: 1rem;">
-          <i class="fa-solid fa-floppy-disk"></i> Save Admin Profile
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- 5. Supabase Config Modal (Admin Tool) -->
-  <div class="modal-overlay" id="supabase-config-modal">
-    <div class="modal-card">
-      <button class="modal-close" onclick="app.closeModal('supabase-config-modal')"><i class="fa-solid fa-xmark"></i></button>
-      <h2 class="modal-title"><i class="fa-solid fa-database" style="color: var(--primary);"></i> Supabase Live Sync</h2>
-      <p class="modal-subtitle">Enter your Supabase project credentials to enable live database synchronization.</p>
-
-      <form onsubmit="app.handleSaveSupabaseConfig(event)">
-        <div class="form-group">
-          <label class="form-label">Supabase URL</label>
-          <input type="url" class="form-control" id="sup-url-input" placeholder="https://xyzcompany.supabase.co">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Supabase Anon Key</label>
-          <input type="password" class="form-control" id="sup-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-          <i class="fa-solid fa-bolt"></i> Connect Supabase Database
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- 6. Gallery Lightbox Modal -->
-  <div class="modal-overlay" id="image-lightbox-modal">
-    <div class="modal-card lg" style="padding: 1rem; text-align: center; background: #000; border-color: #334155;">
-      <button class="modal-close" onclick="app.closeModal('image-lightbox-modal')" style="background: rgba(255,255,255,0.2); color: #fff;"><i class="fa-solid fa-xmark"></i></button>
-      <img id="lightbox-img" src="" alt="Gallery Preview" style="max-height: 80vh; border-radius: var(--radius-md); object-fit: contain;">
-      <p id="lightbox-caption" style="color: #cbd5e1; font-weight: 600; margin-top: 1rem;"></p>
-    </div>
-  </div>
-
-  <!-- 7. Admin Auth Modal -->
-  <div class="modal-overlay" id="admin-auth-modal">
-    <div class="modal-card">
-      <button class="modal-close" onclick="app.closeModal('admin-auth-modal')"><i class="fa-solid fa-xmark"></i></button>
-      <div style="text-align: center; margin-bottom: 1.25rem;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: #0f172a; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.75rem; border: 2px solid var(--glass-border);">
-          <i class="fa-solid fa-user-shield"></i>
-        </div>
-        <h2 class="modal-title" style="margin-bottom: 0.25rem;">Admin Command Center</h2>
-        <p class="modal-subtitle">Authorized QPCP Odisha Administrators Only</p>
-      </div>
-
-      <form id="admin-login-form" onsubmit="app.handleAdminLogin(event)">
-        <div class="form-group">
-          <label class="form-label">Admin Username or Email</label>
-          <input type="text" class="form-control" id="adm-login-user" required placeholder="admin or admin@quickprogressive.edu.in" maxlength="80">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Admin Password</label>
-          <div style="position: relative;">
-            <input type="password" class="form-control" id="adm-login-pass" required placeholder="Enter admin password" maxlength="64" style="padding-right: 2.75rem;">
-            <button type="button" onclick="app.togglePasswordVisibility('adm-login-pass', this)" title="Show/Hide Password" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; font-size: 1rem;">
-              <i class="fa-solid fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: #0f172a; border-color: #334155;">
-          <i class="fa-solid fa-shield-halved"></i> Access Command Center
-        </button>
-
-        <div class="form-hint" style="text-align: center; margin-top: 0.85rem; font-size: 0.8rem; color: var(--text-muted);">
-          <i class="fa-solid fa-lock" style="font-size: 0.75rem;"></i> Forgot Administrator credentials? Contact QPCP HQ Director directly at +91 70082 21300.
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 8. Comprehensive DPDP Act 2023 Privacy Policy & Terms Modal -->
-  <div class="modal-overlay" id="privacy-policy-modal">
-    <div class="modal-card lg" style="max-width: 860px;">
-      <button class="modal-close" onclick="app.closeModal('privacy-policy-modal')"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.85rem;">
-        <div style="width: 46px; height: 46px; border-radius: 12px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1px solid var(--primary-border); flex-shrink: 0;">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-        <div>
-          <h2 class="modal-title" style="margin-bottom: 0.15rem; font-size: 1.35rem;">Privacy Policy & Terms of Service</h2>
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <span class="dpdp-badge"><i class="fa-solid fa-shield-halved"></i> Official Privacy Policy &amp; Terms</span>
-            <span style="font-size: 0.74rem; color: var(--text-dim);">Quick Progressive Career Point • Odisha, India</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab Switcher -->
-      <div class="tab-switcher" style="margin-bottom: 1.1rem;">
-        <button class="tab-btn active" id="privacy-tab-btn-dpdp" onclick="app.switchPrivacyTab('dpdp')">
-          <i class="fa-solid fa-user-shield"></i> Privacy Policy
-        </button>
-        <button class="tab-btn" id="privacy-tab-btn-terms" onclick="app.switchPrivacyTab('terms')">
-          <i class="fa-solid fa-scale-balanced"></i> Terms of Service &amp; Limitation
-        </button>
-      </div>
-
-      <!-- Scrollable Policy Container -->
-      <div class="policy-doc-container" style="max-height: 58vh; overflow-y: auto; padding-right: 0.5rem;">
-        
-        <!-- PANE 1: DPDP ACT 2023 STATUTORY NOTICE & PRIVACY POLICY -->
-        <div id="privacy-pane-dpdp" style="display: block;">
-          
-          <div class="policy-alert-box success">
-            <i class="fa-solid fa-shield-check" style="font-size: 1.1rem; vertical-align: middle; margin-right: 0.35rem;"></i>
-            <strong>Digital Personal Data Protection Act, 2023 Notice (Section 5):</strong> This document constitutes statutory notice issued by Quick Progressive Career Point ("QPCP", "Data Fiduciary") to all registered students, parents, guardians, and tutors ("Data Principals") across Odisha before processing digital personal data.
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-database" style="color: var(--primary);"></i> 1. Itemized Personal Data Collected</h3>
-            <p>In accordance with Section 5(1)(i) of the DPDP Act 2023, QPCP collects only strictly necessary digital personal data voluntarily submitted by you during registration or application:</p>
-            <table class="policy-table">
-              <thead>
-                <tr>
-                  <th>User Role</th>
-                  <th>Personal Data Categories Collected</th>
-                  <th>Legal Purpose of Processing</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Student / Parent</strong></td>
-                  <td>Full Name, 10-digit Phone/WhatsApp number, Email address, Academic standard/curriculum (e.g. CBSE/CHSE Class 12, JEE, NEET), Locality/City in Odisha, and optional profile avatar.</td>
-                  <td>To match and connect students with verified home tutors in their locality, coordinate demo classes, and track learning inquiries.</td>
-                </tr>
-                <tr>
-                  <td><strong>Faculty / Tutor Applicant</strong></td>
-                  <td>Full Name, Mobile number, Email, Teaching subjects, Hourly charges (₹), Educational experience, Locality/City in Odisha, Bio, Intro Demo Video (30s-5min), CV/Resume file, and profile avatar.</td>
-                  <td>To verify academic credentials, evaluate teaching proficiency, feature profiles to prospective students across Odisha, and manage tutoring assignments.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-bullseye" style="color: var(--primary);"></i> 2. Purpose Limitation & Processing Grounds (DPDP Section 4 & 5)</h3>
-            <p>Your personal data is processed solely for specified, explicit, and lawful purposes:</p>
-            <ul>
-              <li><strong>Tutor Matchmaking:</strong> Enabling parents and students in Odisha to discover verified tutors matching required grades, subjects, and pin codes.</li>
-              <li><strong>Contact Facilitation:</strong> Direct communication via WhatsApp, phone calls, or emails strictly related to scheduled home tutoring sessions.</li>
-              <li><strong>Student Contact Privacy Shield:</strong> Student mobile numbers and emails are confidential and never published publicly. Only admin and verified assigned tutors can interact.</li>
-              <li><strong>Zero Unrelated Commercialization:</strong> We DO NOT sell, rent, lease, or monetize your personal data to third-party marketing companies, ad brokers, or external telemarketers.</li>
-            </ul>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-check-double" style="color: var(--primary);"></i> 3. User Consent & Affirmative Opt-In (DPDP Section 6)</h3>
-            <p>Under Section 6 of the DPDP Act 2023, consent must be free, specific, informed, unconditional, and unambiguous with a clear affirmative action:</p>
-            <ul>
-              <li>Registration requires ticking the consent checkbox affirmatively. Pre-ticked boxes are strictly prohibited and not used on this platform.</li>
-              <li>Consent is specific to tutoring facilitation services and platform operations.</li>
-              <li><strong>Right to Withdraw Consent:</strong> Under Section 6(4), you may withdraw your consent at any time by writing to our Grievance Officer. Upon receipt of valid withdrawal, QPCP will cease processing your personal data within statutory timeframes, with the consequence that tutoring matchmaking services will be terminated.</li>
-            </ul>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> 4. Rights of Data Principals (DPDP Sections 11, 12, 13, 14)</h3>
-            <p>The DPDP Act, 2023 guarantees you the following actionable legal rights:</p>
-            <ul>
-              <li><strong>Right to Access Information (Section 11):</strong> Right to obtain a summary of your personal data being processed and identities of parties with whom data has been shared.</li>
-              <li><strong>Right to Correction & Erasure (Section 12):</strong> Right to correct misleading or inaccurate data, update incomplete details, or request erasure of personal data that is no longer required for tutoring.</li>
-              <li><strong>Right of Grievance Redressal (Section 13):</strong> Right to readily available grievance redressal mechanisms with our designated Grievance Officer.</li>
-              <li><strong>Right to Nominate (Section 14):</strong> Right to nominate an individual to exercise data rights on your behalf in the event of death or incapacity.</li>
-              <li><strong>Right to Complain to Board:</strong> If unsatisfied with grievance resolution, you hold the statutory right to file a complaint directly with the <strong>Data Protection Board of India</strong>.</li>
-            </ul>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-envelope-open-text" style="color: var(--primary);"></i> 5. Grievance Redressal Officer Contact Details</h3>
-            <div style="background: #f8fafc; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-size: 0.84rem;">
-              <p style="margin-bottom: 0.35rem;"><strong>Designated Grievance Redressal Officer:</strong> Data Compliance Desk, Quick Progressive Career Point</p>
-              <p style="margin-bottom: 0.35rem;"><strong>Official Support Email:</strong> <a href="mailto:support@quickprogressive.edu.in">support@quickprogressive.edu.in</a></p>
-              <p style="margin-bottom: 0.35rem;"><strong>Dedicated Grievance Email:</strong> <a href="mailto:grievance@quickprogressive.edu.in">grievance@quickprogressive.edu.in</a></p>
-              <p style="margin-bottom: 0.35rem;"><strong>Helpline & WhatsApp:</strong> +91 70082 21300</p>
-              <p style="margin: 0; color: var(--text-dim); font-size: 0.78rem;">Statutory Response SLA: Grievance inquiries are acknowledged within 24 hours and addressed within 7 business days.</p>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- PANE 2: TERMS OF SERVICE & INTERMEDIARY LIMITATION OF LIABILITY -->
-        <div id="privacy-pane-terms" style="display: none;">
-          
-          <div class="policy-alert-box danger">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.15rem; vertical-align: middle; margin-right: 0.35rem;"></i>
-            <strong>CRITICAL LEGAL DISCLAIMER & LIMITATION OF LIABILITY:</strong> Quick Progressive Career Point (QPCP) operates exclusively as an online educational intermediary under Section 79 of the Information Technology Act, 2000. Please read this limitation of liability carefully before registering an account.
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-key" style="color: var(--accent-rose);"></i> 1. User Sole Responsibility for Credentials & Device Security</h3>
-            <p>Every registered user (Student, Parent, Tutor) is solely and exclusively responsible for safeguarding their login credentials and account access:</p>
-            <ul>
-              <li>You must maintain the strict confidentiality of your password, username, email account, and mobile OTPs.</li>
-              <li>You must create a strong, compliant password meeting the platform's security policy.</li>
-              <li>You are strictly prohibited from sharing your login credentials with any third party, friend, or unauthorized individual.</li>
-              <li>All activities, inquiries, communications, and transactions initiated under your registered credentials are deemed to have been executed by you.</li>
-            </ul>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-shield-slash" style="color: var(--accent-rose);"></i> 2. Complete Disclaimer of Liability: If Credentials or Data are Lost, QPCP is NOT to Blame</h3>
-            <div class="policy-alert-box" style="background: #fff1f2; border-left-color: #e11d48; color: #881337;">
-              <strong>EXPRESS LEGAL RELEASE:</strong> If a user's password, login credentials, phone, SIM card, computer, or personal devices are lost, misplaced, stolen, compromised, hacked, infected with malware, or accessed without authorization due to user negligence, weak passwords, device sharing, or third-party acts:
-              <br><br>
-              <strong>QUICK PROGRESSIVE CAREER POINT, ITS FOUNDERS, OPERATORS, EMPLOYEES, AND ADMINISTRATORS SHALL BEAR ZERO RESPONSIBILITY OR LIABILITY AND ARE NOT THE ONES TO BLAME.</strong> Under no circumstances will QPCP be held accountable or liable for any unauthorized access, identity impersonation, account takeover, private conversation exposure, loss of personal data, or any resultant direct or indirect damages.
-            </div>
-            <p>QPCP maintains industry-standard database security and encryption; however, no internet transmission or user-end hardware is impenetrable. Users assume 100% of the risk associated with their local devices, browsers, and internet connectivity.</p>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-handshake-slash" style="color: var(--text-main);"></i> 3. Intermediary Status & Offline Tutoring Disclaimer</h3>
-            <p>Quick Progressive Career Point operates strictly as a digital matching platform connecting independent freelance tutors with students/parents in Odisha:</p>
-            <ul>
-              <li><strong>Independent Contractors:</strong> Tutors listed on QPCP are independent educational educators and NOT employees, agents, or representatives of QPCP.</li>
-              <li><strong>Offline Lessons at Private Homes:</strong> All tutoring sessions occur privately at the student's residence or tutor's location. QPCP does NOT supervise, monitor, or manage physical offline classes.</li>
-              <li><strong>Zero Liability for Conduct or Safety:</strong> QPCP holds zero liability for the personal conduct, behavior, punctuality, safety, physical security, or dispute arising between tutors, parents, and students. Parents and guardians must exercise normal prudence and presence during home tutoring sessions.</li>
-              <li><strong>Financial & Fee Arrangements:</strong> Tuition fee agreements, cash or online exchanges, and fee schedules negotiated between parents and tutors are private bilateral matters. QPCP holds zero liability for payment defaults, non-refunds, or fee disputes.</li>
-              <li><strong>Academic Results:</strong> QPCP makes no representation or warranty regarding guaranteed exam scores, school ranks, or admission outcomes.</li>
-            </ul>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-file-contract" style="color: var(--primary);"></i> 4. "AS IS" Platform & Limitation of Consequential Damages</h3>
-            <p>The platform, database services, and match-making directory are provided strictly on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis without warranties of any kind, whether express, statutory, or implied.</p>
-            <p>To the maximum extent permitted under applicable laws of India, QPCP and its operators shall in no event be liable for any indirect, punitive, incidental, special, exemplary, or consequential damages, including loss of data, loss of devices, emotional distress, or commercial losses arising out of or related to your use of the platform.</p>
-          </div>
-
-          <div class="policy-doc-section">
-            <h3><i class="fa-solid fa-gavel" style="color: var(--primary);"></i> 5. Governing Law & Dispute Jurisdiction</h3>
-            <p>These terms and all related privacy notices are governed by and construed in accordance with the substantive laws of the Republic of India (including the Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000). Any dispute, claim, or controversy arising hereunder shall be subject to the exclusive jurisdiction of the competent courts situated in <strong>Bhubaneswar / Cuttack, Odisha, India</strong>.</p>
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- Modal Footer Action Bar -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.15rem; padding-top: 1rem; border-top: 1px solid var(--glass-border); flex-wrap: wrap; gap: 0.75rem;">
-        <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem;">
-          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> 
-          <span>Standard agreement required for registration</span>
-        </div>
-        <div style="display: flex; gap: 0.6rem;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="app.closeModal('privacy-policy-modal')">Close</button>
-          <button type="button" class="btn btn-primary btn-sm" onclick="app.acceptPrivacyAndClose()">
-            <i class="fa-solid fa-check"></i> I Understand & Accept
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- 9. Admin Gallery Upload Modal (Exclusive to Admin, 100% Server Database Persistent) -->
-  <div class="modal-overlay" id="admin-gallery-modal">
-    <div class="modal-card" style="max-width: 620px;">
-      <button class="modal-close" onclick="app.closeModal('admin-gallery-modal')"><i class="fa-solid fa-xmark"></i></button>
-      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.25rem;">
-        <div style="width: 48px; height: 48px; border-radius: 12px; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border: 1px solid var(--glass-border); flex-shrink: 0;">
-          <i class="fa-solid fa-cloud-arrow-up"></i>
-        </div>
-        <div>
-          <h2 class="modal-title" style="margin-bottom: 0.15rem; font-size: 1.3rem;">Upload Photo to Gallery</h2>
-          <p class="modal-subtitle" style="margin: 0; font-size: 0.82rem;">QPCP Admin Command Center • Server Database Storage (Zero LocalStorage)</p>
-        </div>
-      </div>
-
-      <form id="admin-gallery-form" onsubmit="app.handleAdminGalleryUpload(event)">
-        <div class="form-group">
-          <label class="form-label" for="gal-photo-title">Photo Title <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-          <input type="text" class="form-control" id="gal-photo-title" required placeholder="e.g., Annual Science Kit Demonstration & Toppers Felicitation" maxlength="120">
-        </div>
-
-        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="gal-photo-category">Category <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-            <select class="form-control" id="gal-photo-category" required>
-              <option value="Achievements">Achievements & Rankers</option>
-              <option value="Classrooms">Home Tutoring Sessions</option>
-              <option value="Workshops">Faculty Workshops</option>
-              <option value="Celebrations">Celebrations & Events</option>
-              <option value="Labs">Practical Kits & Experiments</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="gal-image-source-type">Image Source <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-            <select class="form-control" id="gal-image-source-type" onchange="app.toggleGalleryImageSource(this.value)">
-              <option value="file">Upload File from Device</option>
-              <option value="url">Enter Image URL or Path</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- File Upload Section -->
-        <div class="form-group" id="gal-file-group">
-          <label class="form-label" for="gal-photo-file">Select Image File (JPG, PNG, WebP) <span style="color: var(--accent-rose); font-weight: bold;">*</span></label>
-          <input type="file" class="form-control" id="gal-photo-file" accept="image/*" onchange="app.handleGalleryFilePreview(event)">
-          <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.35rem;">
-            Photos are saved permanently to the Supabase cloud database and synced across all devices in real-time.
-          </div>
-        </div>
-
-        <!-- URL Section (Hidden by default or toggled) -->
-        <div class="form-group" id="gal-url-group" style="display: none;">
-          <label class="form-label" for="gal-photo-url">Image URL or Local Asset Path</label>
-          <input type="text" class="form-control" id="gal-photo-url" placeholder="e.g., assets/gallery_classroom.jpg or https://..." oninput="app.handleGalleryUrlPreview(this.value)">
-        </div>
-
-        <!-- Image Preview Card -->
-        <div id="gal-preview-container" style="display: none; margin-bottom: 1.25rem; border: 1px solid var(--glass-border); border-radius: var(--radius-md); overflow: hidden; background: #000; text-align: center; position: relative;">
-          <img id="gal-preview-img" src="" alt="Selected Preview" style="max-height: 220px; width: 100%; object-fit: contain;">
-          <span style="position: absolute; bottom: 8px; right: 8px; font-size: 0.72rem; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 4px;">Preview</span>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="gal-photo-desc">Description / Caption (Optional)</label>
-          <textarea class="form-control" id="gal-photo-desc" rows="3" placeholder="Provide details about the session, achievements, students, or faculty featured in this photo (optional)..." maxlength="400"></textarea>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem;">
-          <button type="button" class="btn btn-secondary" onclick="app.closeModal('admin-gallery-modal')">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="gal-submit-btn" style="background: #0f172a; border-color: #334155;">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Cloud Database
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 9. Admin Reset User Password Modal (Admin Command Center) -->
-  <div class="modal-overlay" id="admin-reset-password-modal">
-    <div class="modal-card" style="max-width: 520px;">
-      <button class="modal-close" onclick="app.closeModal('admin-reset-password-modal')"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
-        <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff1f2; color: var(--accent-rose); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px solid #fecdd3; flex-shrink: 0;">
-          <i class="fa-solid fa-key"></i>
-        </div>
-        <div>
-          <h2 class="modal-title" style="margin-bottom: 0.2rem; font-size: 1.25rem;">Reset User Password</h2>
-          <p class="modal-subtitle" style="margin-bottom: 0;">Admin-supervised manual credential reset on verified user request.</p>
-        </div>
-      </div>
-
-      <!-- Target User Information Summary -->
-      <div id="admin-reset-user-summary" style="background: var(--bg-main); border: 1px solid var(--glass-border); padding: 0.85rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
-        <!-- Dynamically rendered by app.openAdminResetPasswordModal -->
-      </div>
-
-      <form id="admin-reset-password-form" onsubmit="app.handleAdminResetPasswordSubmit(event)">
-        <input type="hidden" id="admin-reset-target-user-id" value="">
-
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-            <label class="form-label" for="admin-new-password" style="margin-bottom: 0;">New Temporary Password *</label>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="app.generateRandomAdminResetPassword()" style="font-size: 0.76rem; padding: 0.25rem 0.65rem; line-height: 1; display: inline-flex; align-items: center; gap: 0.35rem;">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Generate
-            </button>
-          </div>
-          <div style="position: relative;">
-            <input type="password" class="form-control" id="admin-new-password" required minlength="6" maxlength="64" placeholder="Enter temporary password for user">
-            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('admin-new-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
-              <i class="fa-regular fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="admin-confirm-new-password">Confirm Temporary Password *</label>
-          <div style="position: relative;">
-            <input type="password" class="form-control" id="admin-confirm-new-password" required minlength="6" maxlength="64" placeholder="Re-enter temporary password to verify">
-            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('admin-confirm-new-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
-              <i class="fa-regular fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- CIA Triad Operational Security Box -->
-        <div style="background: #fff7ed; border: 1px solid #ffedd5; padding: 0.85rem 1rem; border-radius: var(--radius-md); font-size: 0.82rem; color: #9a3412; margin-bottom: 1.25rem;">
-          <div style="font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem;">
-            <i class="fa-solid fa-shield-halved"></i> CIA Triad Security Enforcement:
-          </div>
-          <ul style="margin: 0 0 0 1.25rem; padding: 0; line-height: 1.45;">
-            <li>The user will be able to log in immediately with this temporary password.</li>
-            <li><strong>Mandatory First-Login Reset:</strong> On their first login, the user will be strictly forced to set their own private password before accessing their portal.</li>
-            <li>No costly OTP/SMS services needed: Copy or WhatsApp this temporary password directly to the verified requester.</li>
-          </ul>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
-          <button type="button" class="btn btn-secondary" onclick="app.closeModal('admin-reset-password-modal')">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="btn-admin-submit-reset" style="background: var(--accent-rose); border-color: var(--accent-rose);">
-            <i class="fa-solid fa-key"></i> Set Password & Require Reset
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 10. Admin Reset Password Success Confirmation Modal -->
-  <div class="modal-overlay" id="admin-reset-success-modal">
-    <div class="modal-card" style="max-width: 500px; text-align: center;">
-      <button class="modal-close" onclick="app.closeModal('admin-reset-success-modal')"><i class="fa-solid fa-xmark"></i></button>
-
-      <div style="width: 56px; height: 56px; border-radius: 50%; background: #ecfdf5; color: var(--accent-emerald); display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 0.75rem; border: 2px solid #a7f3d0;">
-        <i class="fa-solid fa-circle-check"></i>
-      </div>
-      <h2 class="modal-title" style="margin-bottom: 0.25rem;">Temporary Password Set!</h2>
-      <p class="modal-subtitle" id="admin-reset-success-subtitle" style="margin-bottom: 1.25rem;">The temporary password has been successfully configured in the database.</p>
-
-      <div style="background: var(--bg-main); border: 2px dashed var(--accent-rose); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
-        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.35rem; font-weight: 700;">Temporary Credentials</div>
-        <div id="admin-reset-success-password-display" style="font-size: 1.4rem; font-family: monospace; font-weight: 700; color: #0f172a; word-break: break-all; margin-bottom: 0.65rem;"></div>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="app.copyResetPasswordToClipboard()" style="display: inline-flex; align-items: center; gap: 0.35rem;">
-          <i class="fa-solid fa-copy"></i> <span id="copy-pwd-btn-text">Copy Password to Clipboard</span>
-        </button>
-      </div>
-
-      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 0.85rem; font-size: 0.82rem; color: #1e40af; text-align: left; margin-bottom: 1.25rem;">
-        <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
-        <strong>Next Step:</strong> Deliver this password to the user. When they log in with it, the system will immediately prompt them to create their own secure password, fulfilling CIA Triad principles.
-      </div>
-
-      <div style="display: flex; gap: 0.65rem; justify-content: center; flex-wrap: wrap;">
-        <a id="admin-reset-whatsapp-link" href="#" target="_blank" class="btn btn-whatsapp" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-          <i class="fa-brands fa-whatsapp"></i> Send Credentials via WhatsApp
-        </a>
-        <button type="button" class="btn btn-primary" onclick="app.closeModal('admin-reset-success-modal')">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 11. Mandatory CIA-Triad Password Reset Modal (Forced on first login after admin reset) -->
-  <div class="modal-overlay forced-modal" id="force-password-reset-modal" data-prevent-close="true">
-    <div class="modal-card" style="max-width: 520px; border: 2px solid var(--accent-rose); box-shadow: 0 25px 50px -12px rgba(225, 29, 72, 0.35);">
-      <div style="text-align: center; margin-bottom: 1.25rem;">
-        <div style="width: 60px; height: 60px; border-radius: 50%; background: #fff1f2; color: var(--accent-rose); display: inline-flex; align-items: center; justify-content: center; font-size: 1.85rem; margin-bottom: 0.75rem; border: 2px solid #fecdd3; animation: pulseGlow 2s infinite;">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-        <h2 class="modal-title" style="color: #0f172a; margin-bottom: 0.35rem; font-size: 1.35rem;">CIA Triad Security Action Required</h2>
-        <span class="role-badge" style="background: #fff1f2; color: var(--accent-rose); border: 1px solid #fecdd3; font-weight: 700; margin-bottom: 0.5rem; display: inline-block;">
-          <i class="fa-solid fa-lock"></i> Mandatory Private Password Update
-        </span>
-        <p class="modal-subtitle" style="font-size: 0.88rem; line-height: 1.5; color: var(--text-muted); margin-top: 0.5rem;">
-          Your account password was temporarily reset by the Administrator. In accordance with the <strong>CIA Triad (Confidentiality, Integrity, Availability)</strong>, you must now choose your own private password before proceeding. Only you will know this password.
-        </p>
-      </div>
-
-      <form id="force-password-reset-form" onsubmit="app.handleForcedPasswordResetSubmit(event)">
-        <div class="form-group">
-          <label class="form-label" for="force-new-password">Choose Your New Private Password *</label>
-          <div style="position: relative;">
-            <input type="password" class="form-control" id="force-new-password" required minlength="6" maxlength="64" placeholder="Enter your private secure password" oninput="app.checkForcedPasswordStrength(this.value)">
-            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('force-new-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
-              <i class="fa-regular fa-eye"></i>
-            </button>
-          </div>
-          <div id="force-password-strength-bar" style="height: 4px; border-radius: 2px; margin-top: 6px; background: #e2e8f0; overflow: hidden;">
-            <div id="force-password-strength-fill" style="width: 0%; height: 100%; transition: all 0.3s ease; background: #dc2626;"></div>
-          </div>
-          <div id="force-password-strength-text" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 3px;">Password strength: Needs at least 6 characters</div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="force-confirm-password">Confirm New Private Password *</label>
-          <div style="position: relative;">
-            <input type="password" class="form-control" id="force-confirm-password" required minlength="6" maxlength="64" placeholder="Repeat your private password to confirm">
-            <button type="button" class="pwd-toggle-btn" onclick="app.togglePasswordVisibility('force-confirm-password', this)" title="Show/Hide Password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px;">
-              <i class="fa-regular fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <div id="force-password-error" style="display: none; padding: 0.65rem 0.85rem; border-radius: 8px; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; font-size: 0.85rem; margin-bottom: 1rem;"></div>
-
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 0.9rem; border-radius: 8px; font-size: 0.8rem; color: #64748b; margin-bottom: 1.25rem;">
-          <i class="fa-solid fa-lock" style="color: var(--accent-rose); margin-right: 0.35rem;"></i>
-          <strong>Confidentiality Guarantee:</strong> After clicking submit, your temporary password is permanently replaced and cannot be retrieved by anyone, including the administrator.
-        </div>
-
-        <button type="submit" class="btn btn-primary" id="btn-submit-force-reset" style="width: 100%; padding: 0.75rem; background: var(--accent-rose); border-color: var(--accent-rose); font-weight: 700; font-size: 0.95rem;">
-          <i class="fa-solid fa-key"></i> Set Private Password & Continue
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Toast Container -->
-  <div class="toast-container" id="toast-container"></div>
-
-  <!-- JavaScript Scripts -->
-  <script type="module" src="store.js?v=20260929_mobileroute1"></script>
-  <script type="module" src="app.js?v=20260929_mobileroute1"></script>
+      `;
+
+      shared.openModal('video-demo-modal');
+    }
+  </script>
 </body>
 </html>

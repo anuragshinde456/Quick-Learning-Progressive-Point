@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us - Quick Progressive Career Point Odisha</title>
+  <meta name="description" content="Learn about Quick Progressive Career Point, Odisha's premier 1-on-1 home tutoring platform serving Bhubaneswar, Cuttack, Rourkela, Sambalpur, and all 30 districts.">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="Quick Progressive Career Point Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Career Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="index.html" class="nav-link" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link active" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link" data-page="gallery">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container"></div>
+
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html" class="mobile-nav-link" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link active" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <section class="hero" style="padding-top: 3rem; padding-bottom: 3.5rem;">
+      <div class="container" style="text-align: center; max-width: 840px;">
+        <div class="hero-tag"><i class="fa-solid fa-map-pin"></i> Serving All 30 Districts of Odisha</div>
+        <h1 class="hero-title">About <span class="gradient-text">Quick Progressive Career Point</span></h1>
+        <p class="hero-desc" style="margin: 0 auto 2rem;">
+          Quick Progressive Career Point is Odisha's premier 1-on-1 personalized home tutoring platform, connecting ambitious students with verified expert home tutors across Bhubaneswar, Cuttack, Rourkela, Sambalpur, Berhampur, Balasore & statewide.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <!-- Mission & Vision -->
+        <div class="grid-2-col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 3.5rem;">
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--glass-shadow);">
+            <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-bullseye"></i>
+            </div>
+            <h2 style="font-size: 1.45rem; margin-bottom: 0.85rem;">Our Mission</h2>
+            <p style="color: var(--text-muted); line-height: 1.7; font-size: 0.95rem;">
+              To provide top quality, personalized 1-on-1 home tutoring directly at students' doorsteps across Odisha. We conduct thorough in-person and video evaluations of every tutor before publishing their profile to ensure safety, subject mastery, and empathetic mentoring.
+            </p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--glass-shadow);">
+            <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: var(--accent-emerald-light); color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-eye"></i>
+            </div>
+            <h2 style="font-size: 1.45rem; margin-bottom: 0.85rem;">Our Vision</h2>
+            <p style="color: var(--text-muted); line-height: 1.7; font-size: 0.95rem;">
+              To build Odisha's most trusted home education network where parents and students can transparently evaluate teachers through 30s-5min intro video lectures, verified qualifications, and direct communication, all while preserving student contact privacy.
+            </p>
+          </div>
+        </div>
+
+        <!-- Statewide Zones -->
+        <div class="section-header">
+          <span class="section-subtitle">Statewide Network</span>
+          <h2 class="section-title">Home Tutoring Across Odisha</h2>
+          <p class="section-desc">Active faculty coverage across key clusters and districts in Odisha.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; text-align: center; margin-bottom: 3.5rem;">
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--glass-shadow);">
+            <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.75rem; margin-bottom: 0.75rem;"></i>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem;">Bhubaneswar Zone</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">Patia, Jaydev Vihar, Acharya Vihar, Infocity, Nayapalli, Khandagiri & Saheed Nagar</p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--glass-shadow);">
+            <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.75rem; margin-bottom: 0.75rem;"></i>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem;">Cuttack Zone</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">CDA Sectors 1-11, Cantonment Road, Link Road, Bidanasi & Badambadi</p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--glass-shadow);">
+            <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.75rem; margin-bottom: 0.75rem;"></i>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem;">Rourkela & Sambalpur</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">Civil Township, Chhend, Koel Nagar, Burla, Budharaja & Sambalpur City</p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--glass-shadow);">
+            <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 1.75rem; margin-bottom: 0.75rem;"></i>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem;">Southern & Eastern Odisha</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">Berhampur, Balasore, Puri, Jajpur, Angul, Jharsuguda & all 30 Districts</p>
+          </div>
+        </div>
+
+        <!-- Action Callout -->
+        <div style="background: linear-gradient(135deg, var(--primary), #1e40af); color: #fff; border-radius: var(--radius-lg); padding: 2.5rem; text-align: center; box-shadow: var(--glass-shadow);">
+          <h2 style="color: #fff; font-size: 1.8rem; margin-bottom: 0.75rem;">Ready to experience 1-on-1 Home Tutoring?</h2>
+          <p style="color: #e0e7ff; max-width: 600px; margin: 0 auto 1.5rem; font-size: 0.95rem;">Join hundreds of parents & students across Odisha achieving top scores in ICSE, CBSE, CHSE Odisha, and JEE/NEET.</p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="index.html#tutors-section" class="btn btn-secondary" style="background: #fff; color: var(--primary); font-weight: 700;">
+              <i class="fa-solid fa-magnifying-glass"></i> Browse Verified Tutors
+            </a>
+            <a href="signup-teacher.html" class="btn btn-teacher-portal">
+              <i class="fa-solid fa-chalkboard-user"></i> Apply to Teach with Us
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module">
+    import { shared } from './shared.js?v=20261122_v1';
+    document.addEventListener('DOMContentLoaded', () => {
+      shared.init('about');
+    });
+  </script>
+</body>
+</html>

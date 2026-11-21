@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration - Quick Progressive Career Point Odisha</title>
+  <meta name="description" content="Register as a student with Quick Progressive Career Point to book 1-on-1 verified home tutors across Odisha.">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261122_v1">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <img src="assets/logo.png" alt="QPCP Logo" class="brand-logo-img">
+        <div class="brand-title">
+          Quick Progressive <span>Career Point</span>
+        </div>
+      </a>
+
+      <ul class="nav-links desktop-only">
+        <li><a href="index.html" class="nav-link" data-page="home">Home</a></li>
+        <li><a href="about.html" class="nav-link" data-page="about">About Us</a></li>
+        <li><a href="gallery.html" class="nav-link" data-page="gallery">Gallery</a></li>
+      </ul>
+
+      <div class="auth-buttons desktop-only" id="nav-auth-container"></div>
+
+      <button class="mobile-menu-btn" aria-label="Toggle Navigation" type="button">
+        <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobile-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html" class="mobile-nav-link" data-page="home"><i class="fa-solid fa-house" style="color: var(--primary);"></i> Home</a></li>
+        <li><a href="about.html" class="mobile-nav-link" data-page="about"><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About Us</a></li>
+        <li><a href="gallery.html" class="mobile-nav-link" data-page="gallery"><i class="fa-solid fa-images" style="color: var(--primary);"></i> Gallery</a></li>
+      </ul>
+      <div class="mobile-auth-container" id="mobile-auth-container" style="padding: 1rem 0; border-top: 1px solid var(--glass-border); margin-top: 1rem;"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+    <div style="width: 100%; max-width: 620px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); box-shadow: var(--glass-shadow); padding: 2rem;">
+      
+      <div style="text-align: center; margin-bottom: 1.75rem;">
+        <span class="role-badge student" style="font-size: 0.8rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-graduation-cap"></i> Student Registration</span>
+        <h1 style="font-size: 1.65rem; margin-bottom: 0.35rem;">Find Your Home Tutor</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Create your student account to apply for 1-on-1 home tutoring across Odisha.</p>
+      </div>
+
+      <form id="student-signup-form">
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Student Full Name *</label>
+            <input type="text" class="form-control" id="std-name" required placeholder="e.g. Rohan Sharma" minlength="2" maxlength="60">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Choose Unique Username *</label>
+            <input type="text" class="form-control" id="std-username" required placeholder="e.g. rohan_s12" minlength="3" maxlength="25">
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Mobile Number * (10 Digits)</label>
+            <input type="tel" class="form-control" id="std-phone" required placeholder="e.g. 9876543210" maxlength="10" minlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" id="std-email" required placeholder="e.g. rohan@example.com">
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Class / Grade / Exam Goal *</label>
+            <input type="text" class="form-control" id="std-grade" required placeholder="e.g. Class 12 CHSE/CBSE, JEE Main, NEET">
+          </div>
+          <div class="form-group">
+            <label class="form-label">City / Locality in Odisha *</label>
+            <input type="text" class="form-control" id="std-location" required placeholder="e.g. Patia, Bhubaneswar / CDA, Cuttack">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Create Password *</label>
+          <input type="password" class="form-control" id="std-pass" required placeholder="At least 6 characters" minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Profile Photo (Optional)</label>
+          <div class="file-upload-preview-wrap" style="display: flex; gap: 1rem; align-items: center;">
+            <img id="std-avatar-preview" src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff" class="avatar-preview-img" alt="Avatar Preview" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+            <div style="flex: 1;">
+              <input type="file" class="form-control file-input-custom" id="std-avatar-file" accept="image/*">
+              <input type="hidden" id="std-avatar-base64" value="">
+              <span class="form-hint" style="font-size: 0.78rem; color: var(--text-muted);">Max 3MB (JPG, PNG, WEBP)</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="std-submit-btn" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 1rem;">
+          <i class="fa-solid fa-user-plus"></i> Complete Student Registration
+        </button>
+      </form>
+
+      <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border); text-align: center; font-size: 0.88rem; color: var(--text-muted);">
+        Already have an account? <br>
+        <a href="login.html?tab=student" style="font-weight: 700; color: var(--primary);">Login to Student Portal Here</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module">
+    import { store } from './store.js?v=20261122_v1';
+    import { shared } from './shared.js?v=20261122_v1';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      shared.init('signup-student');
+
+      // Avatar file selector
+      const fileInput = document.getElementById('std-avatar-file');
+      const avatarPreview = document.getElementById('std-avatar-preview');
+      const avatarBase64 = document.getElementById('std-avatar-base64');
+
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (file.size > 3 * 1024 * 1024) {
+            shared.showToast('Profile image must be less than 3MB.', 'error');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            avatarPreview.src = evt.target.result;
+            avatarBase64.value = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Form submission
+      const form = document.getElementById('student-signup-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('std-name').value.trim();
+        const username = document.getElementById('std-username').value.trim();
+        const rawPhone = document.getElementById('std-phone').value.trim();
+        const email = document.getElementById('std-email').value.trim();
+        const grade = document.getElementById('std-grade').value.trim();
+        const location = document.getElementById('std-location').value.trim();
+        const password = document.getElementById('std-pass').value;
+        const submitBtn = document.getElementById('std-submit-btn');
+
+        // Phone validation
+        const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+        if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+          shared.showToast('Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.', 'error');
+          return;
+        }
+
+        // Username validation
+        if (!/^[a-zA-Z0-9_]{3,25}$/.test(username)) {
+          shared.showToast('Username must be 3-25 alphanumeric characters (underscores allowed).', 'error');
+          return;
+        }
+
+        const avatar = avatarBase64.value || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2563eb&color=fff`;
+
+        const studentData = {
+          name,
+          username,
+          phone: `+91 ${cleanPhone}`,
+          email,
+          grade,
+          location,
+          password,
+          avatar
+        };
+
+        const origHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registering Student...';
+
+        try {
+          await store.registerStudent(studentData);
+          shared.showToast('Registration successful! Welcome to QPCP Odisha.', 'success');
+          setTimeout(() => {
+            window.location.href = 'student-dashboard.html';
+          }, 400);
+        } catch (err) {
+          shared.showToast(err.message || 'Registration failed. Username may already exist.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origHtml;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
